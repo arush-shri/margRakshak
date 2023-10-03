@@ -9,8 +9,9 @@ class LoginView extends StatelessWidget {
     return const Scaffold(
       body: MaterialApp(
         home: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text("data", style: TextStyle(fontFamily: "Lexend", fontWeight: FontWeight.w400),),
+            Text("Login", style: TextStyle(fontFamily: "Lexend", fontWeight: FontWeight.w400),),
           ],
         ),
       ),
