@@ -70,6 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1060644680160',
     projectId: 'marg-rakshak-8faf4',
     storageBucket: 'marg-rakshak-8faf4.appspot.com',
+    androidClientId: '1060644680160-5ajn4i3areen4alpcfelu2do6gk4q4o3.apps.googleusercontent.com',
+    iosClientId: '1060644680160-2domigrckhulngi9j30l1mb1kntlrktc.apps.googleusercontent.com',
     iosBundleId: 'com.example.margRakshak',
   );
 }

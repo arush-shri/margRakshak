@@ -2,8 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:marg_rakshak/components/static/validator.dart';
 import 'package:marg_rakshak/presenter/AuthPresenter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:marg_rakshak/view/signup.dart';
 import '../components/custom_widgets/custom_text_field.dart';
 import 'home.dart';
 
@@ -18,6 +20,8 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final validator = Validator();
+  double topHeight = 80.h;
   final auth = AuthPresenter();
 
   @override
@@ -55,17 +59,36 @@ class _LoginViewState extends State<LoginView> {
                             style: TextStyle(fontSize:24.sp, fontFamily: "Lexend", fontWeight: FontWeight.w400, color: Colors.black54),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: 80.h,),
-                          CustomTextField(obscureText: false, hintText: "Enter username", controller: _usernameController),
+                          SizedBox(height: topHeight,),
+                          CustomTextField(obscureText: false, hintText: "Enter username", controller: _usernameController,
+                            validator: (String? value){
+                              if (value == null || value.isEmpty) {
+                                topHeight=70.h;
+                                return 'Please enter your email address';
+                              }
+                              if(!validator.isEmailValid(value)){
+                                topHeight=70.h;
+                                return "Enter a valid email address";
+                              }
+                            },),
                           SizedBox(height: 25.h,),
-                          CustomTextField(obscureText: true, hintText: "Enter password", controller: _passwordController),
+                          CustomTextField(obscureText: true, hintText: "Enter password", controller: _passwordController,
+                            validator: (String? value){
+                              if (value == null || value.isEmpty) {
+                                topHeight=50.h;
+                                return 'Please enter your password';
+                              }
+                              if ( validator.isPasswordValid(value) ){
+                                topHeight=50.h;
+                                return "Password should be of length 8 or greater";
+                              }
+                            },),
                           SizedBox(height: 40.h,),
                           ElevatedButton(
                               onPressed: () async{
                                 try{
                                   auth.signIn(mail: _usernameController.text, passwd: _passwordController.text)
                                       .then((status) {
-                                    Navigator.pop(context);
                                     Navigator.pushReplacement(context,
                                         MaterialPageRoute(builder: (context) => const HomePage()));
                                   });
@@ -95,21 +118,21 @@ class _LoginViewState extends State<LoginView> {
                           ),
                           SizedBox(height: 40.h,),
                           SizedBox(
-                            height: 165.h,
-                            width: 300.w,
+                            height: 170.h,
+                            width: 350.w,
                             child: Column(
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      height: 2.h, // Set the desired height of the divider
-                                      width: 68.w,
+                                      height: 2.h,
+                                      width: 82.w,
                                       decoration: const BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
                                             Colors.transparent,
-                                            Color(0xFF737373),
+                                            Color(0xFF646464),
                                           ],
                                           stops: [0.0, 0.9],
                                           begin: Alignment.centerLeft,
@@ -122,13 +145,13 @@ class _LoginViewState extends State<LoginView> {
                                       ),
                                     ),
                                     Container(
-                                      height: 2.h, // Set the desired height of the divider
-                                      width: 68.w,
+                                      height: 2.h,
+                                      width: 82.w,
                                       decoration: const BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
                                             Colors.transparent,
-                                            Color(0xFF737373),
+                                            Color(0xFF646464),
                                           ],
                                           stops: [0.0, 0.9],
                                           begin: Alignment.centerRight,
@@ -138,7 +161,7 @@ class _LoginViewState extends State<LoginView> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 30.h,),
+                                SizedBox(height: 35.h,),
                                 GestureDetector(
                                   onTap: () async {
                                     try{
@@ -180,13 +203,13 @@ class _LoginViewState extends State<LoginView> {
                                   text: "SignUp",
                                   style: TextStyle(
                                     fontSize: 19.sp,
-                                    fontFamily: "Lexend", fontWeight: FontWeight.w400,
+                                    fontFamily: "Lexend", fontWeight: FontWeight.w700,
                                     color: const Color(0xFF0762EC),
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
-                                      // Navigator.pushReplacement(context,
-                                      //     MaterialPageRoute(builder: (context) => const RegistrationPage()));
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) => const RegistrationPage()));
                                     },
                                 ),
                                 TextSpan(

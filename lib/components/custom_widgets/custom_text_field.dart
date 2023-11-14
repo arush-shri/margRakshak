@@ -6,7 +6,9 @@ class CustomTextField extends StatefulWidget {
   final String hintText;
   final bool obscureText;
   final TextEditingController controller;
-  const CustomTextField({super.key, required this.obscureText, required this.hintText, required this.controller});
+  final String? Function(String?)? validator;
+  const CustomTextField({super.key, required this.obscureText, required this.hintText,
+    required this.controller, required this.validator});
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -37,9 +39,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 borderRadius: BorderRadius.circular(10.r),
             )
         ),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         obscureText: widget.obscureText,
+        validator: widget.validator,
       ),
     );
   }
 }
-

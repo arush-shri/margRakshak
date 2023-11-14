@@ -43,6 +43,7 @@ dependencies:
   provider: ^6.0.5
   glass_kit: ^3.0.0
   fluttertoast: ^8.2.4
+  google_maps_flutter: ^2.5.0
 
 dev_dependencies:
   flutter_test:
