@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marg_rakshak/view/custom_bottom_row.dart';
+import 'package:marg_rakshak/view/search_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,7 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
-  final TextEditingController _searchText = TextEditingController();
+  bool _showSearchScreen = false;
 
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
@@ -43,56 +44,36 @@ class _HomePageState extends State<HomePage> {
                         mapType: MapType.satellite,
                         initialCameraPosition: const CameraPosition(
                           target: LatLng(37.43296265331129, -122.08832357078792),
-                          zoom: 11.0,
+                          zoom: 15.0,
                         ),
                       ),
-                      Positioned(
-                          top: 70.h,
-                          left: 35.w,
-                          child: Container(
-                            height: 45.h,
-                            width: 380.w,
-                            decoration: BoxDecoration(
-                              color: Colors.white70,
-                              borderRadius: BorderRadius.all(Radius.circular(400.w))
-                            ),
-                            child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 12.w),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.search_rounded, size: 35.h,),
-                                      Expanded(child:
-                                          TextField(
-                                            controller: _searchText,
-                                            cursorColor: Colors.deepPurpleAccent,
-                                            decoration: InputDecoration(
-                                              hintText: 'Search',
-                                              fillColor: Colors.transparent,
-                                              filled: true,
-                                              hintStyle: TextStyle(fontSize: 16.sp, fontFamily: GoogleFonts.poppins().fontFamily,
-                                                  color: Colors.black),
-                                              isDense: true,
-                                              border: InputBorder.none,
-                                              contentPadding: EdgeInsets.zero,
-                                            ),
-                                            style: const TextStyle(color: Colors.black),
-                                          )
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                      AnimatedPositioned(
+                          top:  _showSearchScreen? 0.h : 70.h,
+                          left: _showSearchScreen? 0.h : 35.w,
+                          right: _showSearchScreen? 0.h : 35.w,
+                          duration: const Duration(milliseconds: 200),
+                          child: GestureDetector(
+                            onTap: (){
+                              setState(() {
+                                _showSearchScreen = true;
+                              });
+                            },
+                            child: SearchScreen(searchBoxOpen: _showSearchScreen, callback: () {
+                              setState(() {
+                                _showSearchScreen = false;
+                              });
+                            },)
                           )
                       ),
                       Positioned(
                           top: 710.h,
                           left: 10.w,
-                          child: Container(
+                          child: _showSearchScreen? const SizedBox():Container(
                             width: 430.w,
                             height: 65.h,
                             decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.82),
-                              borderRadius: BorderRadius.all(Radius.circular(20.w))
+                                color: Colors.white.withOpacity(0.75),
+                                borderRadius: BorderRadius.all(Radius.circular(20.w))
                             ),
                             child: const BottomHomeRow(),
                           )
