@@ -14,7 +14,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
+  GoogleMapController? _controller;
   bool _showSearchScreen = false;
   MapType mapStyle = MapType.satellite;
   double containerHeight = 0.0.h;
@@ -37,8 +37,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
+    _controller = controller;
   }
+
+  void _centerCamera() {
+    if (_controller != null) {
+      _controller!.animateCamera(
+        CameraUpdate.newLatLng(
+            const LatLng(37.43296265331129, -122.08832357078792),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -135,6 +146,19 @@ class _HomePageState extends State<HomePage> {
                             radius: 20.h,
                             backgroundColor: Colors.white70,
                             child: Icon(Icons.layers_rounded, size: 28.h, color: Colors.black,),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 660.h,
+                        right: 10.w,
+                        child: GestureDetector(
+                          onTap: _centerCamera,
+                          child: CircleAvatar(
+                            radius: 20.h,
+                            backgroundColor: Colors.white70,
+                            child: Icon(Icons.gps_fixed_rounded, size: 29.h,
+                              color: const Color(0xFF3263FF),),
                           ),
                         ),
                       ),
