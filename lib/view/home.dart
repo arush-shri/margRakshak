@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marg_rakshak/view/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
-import 'package:uuid/uuid.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,12 +16,25 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   bool _showSearchScreen = false;
+  MapType mapStyle = MapType.satellite;
+  double containerHeight = 0.0.h;
+  double containerWidth = 0.0.h;
+  double terrainRadius = 0.0.h;
+
   static const Marker mark = Marker(
       markerId: MarkerId('MyMarker'),
       infoWindow: InfoWindow(title: "You"),
       icon: BitmapDescriptor.defaultMarker,
       position: LatLng(37.43296265331129, -122.08832357078792)
   );
+
+  void _toggleContainer() {
+    setState(() {
+      containerHeight = containerHeight == 0.0.h ? 60.0.h : 0.0.h;
+      containerWidth = containerWidth == 0.0.h ? 195.0.h : 0.0.h;
+      terrainRadius = terrainRadius == 0.0.h ? 21.0.h : 0.0.h;
+    });
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
@@ -50,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                         markers: {mark},
                         zoomGesturesEnabled: true,
                         zoomControlsEnabled: false,
-                        mapType: MapType.satellite,
+                        mapType: mapStyle,
                         initialCameraPosition: const CameraPosition(
                           target: LatLng(37.43296265331129, -122.08832357078792),
                           zoom: 15.0,
@@ -75,6 +86,59 @@ class _HomePageState extends State<HomePage> {
                           )
                       ),
                       Positioned(
+                          bottom: 150.h,
+                          left: 34.w,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.fastOutSlowIn,
+                            height: containerHeight,
+                            width: containerWidth,
+                            padding: EdgeInsets.symmetric(horizontal: 13.w),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(20.h)),
+                              color: Colors.white.withOpacity(0.9)
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  terrainIcon('assets/images/sat_pic.png', () {
+                                    setState(() {
+                                      mapStyle = MapType.satellite;
+                                    });
+                                  }),
+                                  SizedBox(width: 26.w,),
+                                  terrainIcon('assets/images/def_pic.png', () {
+                                    setState(() {
+                                      mapStyle = MapType.normal;
+                                    });
+                                  }),
+                                  SizedBox(width: 26.w,),
+                                  terrainIcon('assets/images/ter_pic.png', () {
+                                    setState(() {
+                                      mapStyle = MapType.terrain;
+                                    });
+                                  }),
+                                ],
+                              ),
+                            ),
+                          )
+                      ),
+                      Positioned(
+                        top: 660.h,
+                        left: 10.w,
+                        child: GestureDetector(
+                          onTap: _toggleContainer,
+                          child: CircleAvatar(
+                            radius: 20.h,
+                            backgroundColor: Colors.white70,
+                            child: Icon(Icons.layers_rounded, size: 28.h, color: Colors.black,),
+                          ),
+                        ),
+                      ),
+                      Positioned(
                           top: 710.h,
                           left: 10.w,
                           child: _showSearchScreen? const SizedBox():Container(
@@ -95,6 +159,17 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       },
+    );
+  }
+
+  Widget terrainIcon(String picPath, VoidCallback callback){
+    return GestureDetector(
+      onTap: callback,
+      child: CircleAvatar(
+        radius: terrainRadius,
+        backgroundColor: Colors.transparent,
+        backgroundImage: AssetImage(picPath),
+      ),
     );
   }
 }
