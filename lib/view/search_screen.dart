@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
 
 class SearchScreen extends StatefulWidget {
   final VoidCallback callback;
@@ -17,6 +22,51 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchText = TextEditingController();
   bool toastShown = false;
   String transportMedium = "";
+  List<dynamic> _placesList = [];
+  var uuid = const Uuid();
+  String sessionToken = '124578';
+
+  @override
+  void initState() {
+    _searchText.addListener(() {
+      onChange();
+    });
+    super.initState();
+  }
+
+  void onChange(){
+    if(sessionToken == null){
+      setState(() {
+        sessionToken = uuid.v4();
+      });
+    }
+
+    getPlaces(_searchText.text);
+  }
+
+  void getPlaces(String inputText) async{
+    String? apiKey = dotenv.env['GMAPSAPI'];
+    String baseURL = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
+    String request = "$baseURL?input=$inputText&key=$apiKey&sessiontoken=$sessionToken";
+    
+    var response = await http.get(Uri.parse(request));
+    if(response.statusCode==200){
+      setState(() {
+        _placesList = jsonDecode(response.body.toString()) ["predictions"];
+      });
+    }
+    else{
+      Fluttertoast.showToast(
+          msg: "Please restart app or check you internet connection",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: const Color(0xFF46009A),
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return WillPopScope(onWillPop: () async {
       widget.callback();
       toastShown = false;
+      _searchText.text = "";
       return false;
     },
       child: Container(
@@ -71,7 +122,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(30.w, 70.w, 30.w, 15.w),
+              padding: EdgeInsets.fromLTRB(30.w, 70.w, 30.w, 25.w),
               child: TextField(
                 controller: _searchText,
                 cursorColor: Colors.deepPurpleAccent,
@@ -105,11 +156,56 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 10.h,),
+            SizedBox(height: 20.h,),
             Divider(
               height: 1.h,
               thickness: 1.5.h,
               color: const Color(0xFFABABAB),
+            ),
+            Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _placesList.length,
+                  itemBuilder: (context, index){
+                    return Container(
+                      height: 56.h,
+                      width: 450.w,
+                      padding: EdgeInsets.symmetric(horizontal: 10.w),
+                      child: Column(
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 30.w,
+                                color: Colors.indigoAccent,
+                              ),
+                              SizedBox(width: 10.w,),
+                              SizedBox(
+                                width: 390.w,
+                                height: 45.w,
+                                child: Text(
+                                  _placesList[index]['description'],
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
+                                      fontWeight: FontWeight.w400 , color: Colors.white),
+                                ),
+                              )
+                            ],
+                          ),
+                          Divider(
+                            height: 1.h,
+                            thickness: 1.5.h,
+                            indent: 10.w,
+                            endIndent: 10.w,
+                            color: const Color(0xFFD3CCCC),
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                )
             )
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marg_rakshak/view/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
+import 'package:uuid/uuid.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +18,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   bool _showSearchScreen = false;
+  static const Marker mark = Marker(
+      markerId: MarkerId('MyMarker'),
+      infoWindow: InfoWindow(title: "You"),
+      icon: BitmapDescriptor.defaultMarker,
+      position: LatLng(37.43296265331129, -122.08832357078792)
+  );
 
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
@@ -40,6 +47,8 @@ class _HomePageState extends State<HomePage> {
                       GoogleMap(
                         onMapCreated: _onMapCreated,
                         scrollGesturesEnabled: true,
+                        markers: {mark},
+                        zoomGesturesEnabled: true,
                         zoomControlsEnabled: false,
                         mapType: MapType.satellite,
                         initialCameraPosition: const CameraPosition(
