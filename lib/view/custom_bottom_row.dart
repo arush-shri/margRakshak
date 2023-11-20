@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:marg_rakshak/view/report_screen.dart';
+import 'package:marg_rakshak/view/road_side_help.dart';
 
 class BottomHomeRow extends StatefulWidget {
   const BottomHomeRow({super.key});
@@ -34,9 +36,12 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         rowItem(Icons.location_on_outlined, "Explore", const Color(0xFF5C4033), ()=>{}),
-        rowItem(Icons.car_crash_outlined, "Assist", const Color(0xFF5C40F3), ()=>{}),
+        rowItem(Icons.car_crash_outlined, "Assist", const Color(0xFF5C40F3), ()=>Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const RoadSideHelpScreen()))),
         contributeRowItem(),
-        rowItem(Icons.warning_amber, "Report", const Color(0xFFECB100), ()=>{}),
+        rowItem(Icons.warning_amber, "Report", const Color(0xFFECB100), ()=>Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ReportScreen()))
+        ),
       ],
     );
   }
