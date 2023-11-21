@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marg_rakshak/components/custom_widgets/outsidoor_animator.dart';
 import 'package:marg_rakshak/view/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
 
@@ -95,6 +96,14 @@ class _HomePageState extends State<HomePage> {
                               });
                             },)
                           )
+                      ),
+                      Positioned(
+                          child: Container(
+                            width: 450.w,
+                            height: 800.h,
+                            color: const Color(0xFF2C2C2C).withOpacity(0.7),
+                            child: const OutdoorAnimation(condition: "condition"),
+                          ),
                       ),
                       Positioned(
                           bottom: 150.h,
