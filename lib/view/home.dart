@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
+  double screenWidth = 0.0.w;
 
   static const Marker mark = Marker(
       markerId: MarkerId('MyMarker'),
@@ -44,9 +45,10 @@ class _HomePageState extends State<HomePage> {
 
   void _toggleContribute(){
     setState(() {
-      contributionHeight = contributionHeight == 0.0.h ? 65.h : 0.0.h;
-      contributionWidth = contributionWidth == 0.0.w ? 400.0.w : 0.0.w;
+      contributionHeight = contributionHeight == 0.0.h ? 84.h : 0.0.h;
+      contributionWidth = contributionWidth == 0.0.w ? 410.0.w : 0.0.w;
       _showContributionScreen = !_showContributionScreen;
+      screenWidth = screenWidth == 0.0.w? 46.w : 0.0.w;
     });
   }
 
@@ -188,17 +190,19 @@ class _HomePageState extends State<HomePage> {
                           bottom: 100.h,
                           left: _showContributionScreen? 10.w : 300.w,
                           right: _showContributionScreen? 50.w : 180.w,
-                          duration: const Duration(milliseconds: 200),
+                          duration: const Duration(milliseconds: 250),
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.fastOutSlowIn,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
                             height: contributionHeight,
                             width: contributionWidth,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.all(Radius.circular(20.h)),
-                                color: Colors.white.withOpacity(0.9)
+                                color: const Color(0xFF560964).withOpacity(0.8)
                             ),
-                            child: const ContributionRow(),
+                            child: SingleChildScrollView(
+                              child: ContributionRow(screenWidth: screenWidth,),
+                            )
                           )
                       ),
                       Positioned(
