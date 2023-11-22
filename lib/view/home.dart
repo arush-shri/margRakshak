@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:marg_rakshak/components/custom_widgets/outsidoor_animator.dart';
-import 'package:marg_rakshak/view/custom_bottom_row.dart';
+import 'package:marg_rakshak/components/custom_widgets/contribution_row.dart';
+import 'package:marg_rakshak/components/custom_widgets/outdoor_animator.dart';
+import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -17,10 +18,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GoogleMapController? _controller;
   bool _showSearchScreen = false;
+  bool _showContributionScreen = false;
   MapType mapStyle = MapType.satellite;
   double containerHeight = 0.0.h;
   double containerWidth = 0.0.h;
+  double contributionHeight = 0.0.h;
+  double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
+  String outdoorCondition = "";
 
   static const Marker mark = Marker(
       markerId: MarkerId('MyMarker'),
@@ -32,8 +37,16 @@ class _HomePageState extends State<HomePage> {
   void _toggleContainer() {
     setState(() {
       containerHeight = containerHeight == 0.0.h ? 60.0.h : 0.0.h;
-      containerWidth = containerWidth == 0.0.h ? 195.0.h : 0.0.h;
+      containerWidth = containerWidth == 0.0.h ? 223.0.w : 0.0.w;
       terrainRadius = terrainRadius == 0.0.h ? 21.0.h : 0.0.h;
+    });
+  }
+
+  void _toggleContribute(){
+    setState(() {
+      contributionHeight = contributionHeight == 0.0.h ? 65.h : 0.0.h;
+      contributionWidth = contributionWidth == 0.0.w ? 400.0.w : 0.0.w;
+      _showContributionScreen = !_showContributionScreen;
     });
   }
 
@@ -97,13 +110,13 @@ class _HomePageState extends State<HomePage> {
                             },)
                           )
                       ),
-                      Positioned(
-                          child: Container(
-                            width: 450.w,
-                            height: 800.h,
-                            color: const Color(0xFF2C2C2C).withOpacity(0.7),
-                            child: const OutdoorAnimation(condition: "condition"),
-                          ),
+                      outdoorCondition == "" ? Container() : Positioned(
+                        child: Container(
+                          width: 450.w,
+                          height: 800.h,
+                          color: const Color(0xFF2C2C2C).withOpacity(0.7),
+                          child: OutdoorAnimation(condition: outdoorCondition),
+                        ),
                       ),
                       Positioned(
                           bottom: 150.h,
@@ -171,6 +184,23 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+                      AnimatedPositioned(
+                          bottom: 100.h,
+                          left: _showContributionScreen? 10.w : 300.w,
+                          right: _showContributionScreen? 50.w : 180.w,
+                          duration: const Duration(milliseconds: 200),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.fastOutSlowIn,
+                            height: contributionHeight,
+                            width: contributionWidth,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(20.h)),
+                                color: Colors.white.withOpacity(0.9)
+                            ),
+                            child: const ContributionRow(),
+                          )
+                      ),
                       Positioned(
                           top: 710.h,
                           left: 10.w,
@@ -181,7 +211,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.white.withOpacity(0.75),
                                 borderRadius: BorderRadius.all(Radius.circular(20.w))
                             ),
-                            child: const BottomHomeRow(),
+                            child: BottomHomeRow(toggleContribute: _toggleContribute,),
                           )
                       )
                     ],

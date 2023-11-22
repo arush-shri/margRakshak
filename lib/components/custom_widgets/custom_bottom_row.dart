@@ -4,7 +4,8 @@ import 'package:marg_rakshak/view/report_screen.dart';
 import 'package:marg_rakshak/view/road_side_help.dart';
 
 class BottomHomeRow extends StatefulWidget {
-  const BottomHomeRow({super.key});
+  final VoidCallback toggleContribute;
+  const BottomHomeRow({super.key, required this.toggleContribute});
 
   @override
   State<BottomHomeRow> createState() => _BottomHomeRowState();
@@ -32,13 +33,14 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    VoidCallback callback = widget.toggleContribute;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         rowItem(Icons.location_on_outlined, "Explore", const Color(0xFF5C4033), ()=>{}),
         rowItem(Icons.car_crash_outlined, "Assist", const Color(0xFF5C40F3), ()=>Navigator.push(context,
             MaterialPageRoute(builder: (context) => const RoadSideHelpScreen()))),
-        contributeRowItem(),
+        contributeRowItem(callback),
         rowItem(Icons.warning_amber, "Report", const Color(0xFFECB100), ()=>Navigator.push(context,
             MaterialPageRoute(builder: (context) => const ReportScreen()))
         ),
@@ -46,10 +48,11 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
     );
   }
 
-  Widget contributeRowItem() {
+  Widget contributeRowItem(VoidCallback callback) {
     return GestureDetector(
       onTap: () {
         _controller.forward(from: 0);
+        callback();
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -81,8 +84,6 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
     );
   }
 }
-
-
 
 Widget rowItem(IconData icon, String text, Color color,VoidCallback callback){
   return GestureDetector(
