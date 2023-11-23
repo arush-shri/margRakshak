@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:marg_rakshak/components/custom_widgets/check_mark.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -65,7 +66,11 @@ class _ReportScreenState extends State<ReportScreen> {
                       ),
                     ),
                     ElevatedButton(
-                        onPressed: ()=>{},
+                        onPressed: ()=>{
+                          Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (context) => const CheckMark(checkMark: false))
+                          )
+                        },
                         style: ButtonStyle(
                             fixedSize: MaterialStatePropertyAll(Size(200.w, 40.h))
                         ),

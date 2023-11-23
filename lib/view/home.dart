@@ -198,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                             width: contributionWidth,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.all(Radius.circular(20.h)),
-                                color: const Color(0xFF560964).withOpacity(0.8)
+                                color: const Color(0xFF44056C).withOpacity(0.8)
                             ),
                             child: SingleChildScrollView(
                               child: ContributionRow(screenWidth: screenWidth,),

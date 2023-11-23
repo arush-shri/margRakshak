@@ -21,7 +21,7 @@ class _ContributionRowState extends State<ContributionRow> {
         rowItem("assets/images/accident_icon.png", "Accident\nProne", screenWidth, () { }),
         rowItem("assets/images/turn_icon.png", "Blind\nTurn", screenWidth, () { }),
         rowItem("assets/images/forest_icon.png", "Forest\nArea", screenWidth, () { }),
-        rowItem("assets/images/ghat_icon.png", "Ghat\nRegion", screenWidth, () { }),
+        rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", screenWidth, () { }),
       ],
     );
   }

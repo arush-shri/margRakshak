@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../components/custom_widgets/check_mark.dart';
+
 class RoadSideHelpScreen extends StatefulWidget {
   const RoadSideHelpScreen({super.key});
 
@@ -75,7 +77,11 @@ class _RoadSideHelpScreenState extends State<RoadSideHelpScreen> {
                   ),
                   SizedBox(height: 20.h,),
                   ElevatedButton(
-                      onPressed: ()=>{},
+                      onPressed: ()=>{
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (context) => const CheckMark(checkMark: true))
+                        )
+                      },
                       style: ButtonStyle(
                           fixedSize: MaterialStatePropertyAll(Size(200.w, 40.h))
                       ),
