@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marg_rakshak/components/custom_widgets/contribution_row.dart';
 import 'package:marg_rakshak/components/custom_widgets/outdoor_animator.dart';
@@ -28,13 +29,35 @@ class _HomePageState extends State<HomePage> {
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
   double screenWidth = 0.0.w;
-
-  static const Marker mark = Marker(
+  late Position position;
+  Marker myMark = const Marker(
       markerId: MarkerId('MyMarker'),
       infoWindow: InfoWindow(title: "You"),
       icon: BitmapDescriptor.defaultMarker,
-      position: LatLng(37.43296265331129, -122.08832357078792)
+      position: LatLng(0.0,0.0)
   );
+
+  Future<void> initLocation() async {
+  final hasPermission = await _handleLocationPermission(context);
+  if(hasPermission){
+      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  }
+  setState(() {
+    myMark = Marker(
+        markerId: const MarkerId('MyMarker'),
+        infoWindow: const InfoWindow(title: "You"),
+        icon: BitmapDescriptor.defaultMarker,
+        position: LatLng(position.latitude, position.longitude)
+    );
+    _centerCamera();
+  });
+  print(myMark);
+}
+  @override
+  void initState() {
+    initLocation();
+    super.initState();
+  }
 
   void _toggleContainer() {
     setState(() {
@@ -58,10 +81,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _centerCamera() {
+    print(position);
     if (_controller != null) {
       _controller!.animateCamera(
         CameraUpdate.newLatLng(
-            const LatLng(37.43296265331129, -122.08832357078792),
+            LatLng(position.latitude, position.longitude),
         ),
       );
     }
@@ -86,12 +110,12 @@ class _HomePageState extends State<HomePage> {
                       GoogleMap(
                         onMapCreated: _onMapCreated,
                         scrollGesturesEnabled: true,
-                        markers: {mark},
+                        markers: {myMark},
                         zoomGesturesEnabled: true,
                         zoomControlsEnabled: false,
                         mapType: mapStyle,
                         initialCameraPosition: const CameraPosition(
-                          target: LatLng(37.43296265331129, -122.08832357078792),
+                          target: LatLng(0,0),
                           zoom: 15.0,
                         ),
                       ),
@@ -320,4 +344,30 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+Future<bool> _handleLocationPermission(BuildContext context) async {
+  bool serviceEnabled;
+  LocationPermission permission;
+
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Location services are disabled. Please enable the services')));
+    return false;
+  }
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location permissions are denied')));
+      return false;
+    }
+  }
+  if (permission == LocationPermission.deniedForever) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Location permissions are permanently denied, we cannot request permissions.')));
+    return false;
+  }
+  return true;
 }

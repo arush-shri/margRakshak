@@ -32,7 +32,7 @@ class Main extends StatelessWidget {
             return const HomePage();
           }
           else{
-            return LoginView();
+            return const LoginView();
           }
         },
       ),
