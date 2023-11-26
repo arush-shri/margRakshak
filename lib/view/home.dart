@@ -1,13 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart';
 import 'package:marg_rakshak/components/custom_widgets/contribution_row.dart';
 import 'package:marg_rakshak/components/custom_widgets/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
+
+import '../presenter/HomePresenter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,6 +36,9 @@ class _HomePageState extends State<HomePage> {
   String outdoorCondition = "";
   double screenWidth = 0.0.w;
   late Position position;
+  late Response placePic;
+  late Map<String, dynamic> _locationDetails;
+  final homePresenter = HomePresenter();
 
   Future<void> initLocation() async {
   final hasPermission = await _handleLocationPermission(context);
@@ -63,6 +72,16 @@ class _HomePageState extends State<HomePage> {
   void _onMapCreated(GoogleMapController controller) {
     _controller = controller;
     _centerCamera();
+  }
+
+  Future<void> locationSearched(String placeName) async {
+    final response = await homePresenter.getPlaceDetails(placeName);
+    _locationDetails = json.decode(response.body)['result'];
+    placePic = await homePresenter.getPlaceImage(_locationDetails['photos'][0]["photo_reference"]);
+    setState(() {
+      _showSearchScreen = false;
+      _navScreen = true;
+    });
   }
 
   void _centerCamera() {
@@ -119,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                               setState(() {
                                 _showSearchScreen = false;
                               });
-                            },)
+                            }, locationSearched: (String placeName) { locationSearched(placeName); },)
                           )
                       ),
                       outdoorCondition == "" ? Container() : Positioned(
@@ -252,81 +271,94 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget LocationInfo(){
-    return Container(
-      padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("DISTANCE TIME",
-            style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
-                fontWeight: FontWeight.w500, color: Colors.black),
-          ),
-          SizedBox(height: 5.h,),
-          SizedBox(
-            width: 450.w,
-            height: 110.h,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("OPEN CLOSE STATUS",
-                      style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                          fontWeight: FontWeight.w400, color: Colors.black),
-                    ),
-                    SizedBox(height: 5.h,),
-                    Text("RATING: ",
-                      style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                          fontWeight: FontWeight.w400, color: Colors.black),
-                    ),
-                    SizedBox(height: 15.h,),
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: ()=>{},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(400.w))
-                            )
+    return WillPopScope(
+      onWillPop: () async {
+        setState(() {
+          _navScreen = false;
+        });
+        return false;
+      },
+      child: Container(
+        padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
+        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_locationDetails['name'],
+              style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
+                  fontWeight: FontWeight.w500, color: Colors.black),
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 5.h,),
+            SizedBox(
+              width: 450.w,
+              height: 110.h,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
+                      Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+                        style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                            fontWeight: FontWeight.w400,
+                            color: _locationDetails["opening_hours"]["open_now"]==false?Colors.red : const Color(0xFF1FFF12)),
+                      ) : const SizedBox(),
+                      SizedBox(height: 5.h,),
+                      _locationDetails.containsKey("rating")?
+                      Text("RATING: ${_locationDetails["rating"].toString()}",
+                        style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                            fontWeight: FontWeight.w400, color: Colors.black),
+                      ) : const SizedBox(),
+                      SizedBox(height: 15.h,),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed: ()=>{},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(400.w))
+                              )
+                            ),
+                            child: Text(
+                                "START",
+                                style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w400, color: Colors.white),
+                              ),
                           ),
-                          child: Text(
-                              "START",
+                          SizedBox(width: 22.w,),
+                          ElevatedButton(
+                            onPressed: ()=>{},
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurpleAccent,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(400.w))
+                                )
+                            ),
+                            child: Text(
+                              "SHARE",
                               style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
                                   fontWeight: FontWeight.w400, color: Colors.white),
                             ),
-                        ),
-                        SizedBox(width: 22.w,),
-                        ElevatedButton(
-                          onPressed: ()=>{},
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurpleAccent,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(400.w))
-                              )
                           ),
-                          child: Text(
-                            "SHARE",
-                            style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400, color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-                SizedBox(
-                  width: 200.w,
-                  height: 100.h,
-                  child: Image.asset("assets/images/map_bg.png",
-                    fit: BoxFit.contain,),
-                )
-              ],
+                        ],
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    width: 200.w,
+                    height: 100.h,
+                    child: Image.memory(Uint8List.fromList(placePic.bodyBytes),
+                        fit: BoxFit.fill,),
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

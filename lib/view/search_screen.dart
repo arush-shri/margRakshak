@@ -1,18 +1,19 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart';
+import 'package:marg_rakshak/presenter/HomePresenter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 
 class SearchScreen extends StatefulWidget {
   final VoidCallback callback;
   final bool searchBoxOpen;
-  const SearchScreen({super.key, required this.searchBoxOpen, required this.callback});
+  final void Function(String) locationSearched;
+  const SearchScreen({super.key, required this.searchBoxOpen, required this.callback, required this.locationSearched});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -25,6 +26,8 @@ class _SearchScreenState extends State<SearchScreen> {
   List<dynamic> _placesList = [];
   var uuid = const Uuid();
   String sessionToken = '124578';
+  late Response response;
+  final homePresenter = HomePresenter();
 
   @override
   void initState() {
@@ -45,11 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void getPlaces(String inputText) async{
-    String? apiKey = dotenv.env['GMAPSAPI'];
-    String baseURL = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
-    String request = "$baseURL?input=$inputText&key=$apiKey&sessiontoken=$sessionToken";
-    
-    var response = await http.get(Uri.parse(request));
+    response = await homePresenter.getPlaces(inputText, sessionToken);
     if(response.statusCode==200){
       setState(() {
         _placesList = jsonDecode(response.body.toString()) ["predictions"];
@@ -167,41 +166,46 @@ class _SearchScreenState extends State<SearchScreen> {
                   shrinkWrap: true,
                   itemCount: _placesList.length,
                   itemBuilder: (context, index){
-                    return Container(
-                      height: 56.h,
-                      width: 450.w,
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      child: Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 30.w,
-                                color: Colors.indigoAccent,
-                              ),
-                              SizedBox(width: 10.w,),
-                              SizedBox(
-                                width: 390.w,
-                                height: 45.w,
-                                child: Text(
-                                  _placesList[index]['description'],
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
-                                      fontWeight: FontWeight.w400 , color: Colors.white),
+                    return GestureDetector(
+                      onTap: () async {
+                        widget.locationSearched(_placesList[index]['description']);
+                      },
+                      child: Container(
+                        height: 56.h,
+                        width: 450.w,
+                        padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 30.w,
+                                  color: Colors.indigoAccent,
                                 ),
-                              )
-                            ],
-                          ),
-                          Divider(
-                            height: 1.h,
-                            thickness: 1.5.h,
-                            indent: 10.w,
-                            endIndent: 10.w,
-                            color: const Color(0xFFD3CCCC),
-                          )
-                        ],
+                                SizedBox(width: 10.w,),
+                                SizedBox(
+                                  width: 390.w,
+                                  height: 45.w,
+                                  child: Text(
+                                    _placesList[index]['description'],
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
+                                        fontWeight: FontWeight.w400 , color: Colors.white),
+                                  ),
+                                )
+                              ],
+                            ),
+                            Divider(
+                              height: 1.h,
+                              thickness: 1.5.h,
+                              indent: 10.w,
+                              endIndent: 10.w,
+                              color: const Color(0xFFD3CCCC),
+                            )
+                          ],
+                        ),
                       ),
                     );
                   },
