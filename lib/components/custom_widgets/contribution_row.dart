@@ -15,21 +15,29 @@ class _ContributionRowState extends State<ContributionRow> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = widget.screenWidth;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        rowItem("assets/images/accident_icon.png", "Accident\nProne", screenWidth, () { }),
-        rowItem("assets/images/turn_icon.png", "Blind\nTurn", screenWidth, () { }),
-        rowItem("assets/images/forest_icon.png", "Forest\nArea", screenWidth, () { }),
-        rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", screenWidth, () { }),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 400.w
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            rowItem("assets/images/accident_icon.png", "Accident\nProne", screenWidth, () { }),
+            rowItem("assets/images/rail_icon.png", "Railway\nCrossing", screenWidth, () { }),
+            rowItem("assets/images/forest_icon.png", "Forest\nArea", screenWidth, () { }),
+            rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", screenWidth, () { }),
+            rowItem("assets/images/ghat_icon.png", "Other\nRegion", screenWidth, () { }),
+          ],
+        ),
+      ),
     );
   }
 }
 
 Widget rowItem(String imagePath, String text, double screenWidth, VoidCallback callback){
-  return Expanded(
-    child: GestureDetector(
+  return GestureDetector(
       onTap: callback,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,6 +55,5 @@ Widget rowItem(String imagePath, String text, double screenWidth, VoidCallback c
           )
         ],
       ),
-    ),
-  );
+    );
 }

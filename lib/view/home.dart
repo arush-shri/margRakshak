@@ -30,28 +30,12 @@ class _HomePageState extends State<HomePage> {
   String outdoorCondition = "";
   double screenWidth = 0.0.w;
   late Position position;
-  Marker myMark = const Marker(
-      markerId: MarkerId('MyMarker'),
-      infoWindow: InfoWindow(title: "You"),
-      icon: BitmapDescriptor.defaultMarker,
-      position: LatLng(0.0,0.0)
-  );
 
   Future<void> initLocation() async {
   final hasPermission = await _handleLocationPermission(context);
   if(hasPermission){
       position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
-  setState(() {
-    myMark = Marker(
-        markerId: const MarkerId('MyMarker'),
-        infoWindow: const InfoWindow(title: "You"),
-        icon: BitmapDescriptor.defaultMarker,
-        position: LatLng(position.latitude, position.longitude)
-    );
-    _centerCamera();
-  });
-  print(myMark);
 }
   @override
   void initState() {
@@ -78,10 +62,10 @@ class _HomePageState extends State<HomePage> {
 
   void _onMapCreated(GoogleMapController controller) {
     _controller = controller;
+    _centerCamera();
   }
 
   void _centerCamera() {
-    print(position);
     if (_controller != null) {
       _controller!.animateCamera(
         CameraUpdate.newLatLng(
@@ -110,7 +94,8 @@ class _HomePageState extends State<HomePage> {
                       GoogleMap(
                         onMapCreated: _onMapCreated,
                         scrollGesturesEnabled: true,
-                        markers: {myMark},
+                        myLocationButtonEnabled: false,
+                        myLocationEnabled: true,
                         zoomGesturesEnabled: true,
                         zoomControlsEnabled: false,
                         mapType: mapStyle,
@@ -191,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                         left: 10.w,
                         child: GestureDetector(
                           onTap: _toggleContainer,
-                          child: CircleAvatar(
+                          child: _showSearchScreen? const SizedBox() : CircleAvatar(
                             radius: 20.h,
                             backgroundColor: Colors.white70,
                             child: Icon(Icons.layers_rounded, size: 28.h, color: Colors.black,),
@@ -203,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                         right: 10.w,
                         child: GestureDetector(
                           onTap: _centerCamera,
-                          child: CircleAvatar(
+                          child: _showSearchScreen? const SizedBox() : CircleAvatar(
                             radius: 20.h,
                             backgroundColor: Colors.white70,
                             child: Icon(Icons.gps_fixed_rounded, size: 29.h,
@@ -214,16 +199,17 @@ class _HomePageState extends State<HomePage> {
                       AnimatedPositioned(
                           bottom: 100.h,
                           left: _showContributionScreen? 10.w : 300.w,
-                          right: _showContributionScreen? 50.w : 180.w,
+                          right: _showContributionScreen? 30.w : 180.w,
                           duration: const Duration(milliseconds: 250),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 500),
                             curve: Curves.easeInOut,
                             height: contributionHeight,
                             width: contributionWidth,
+                            padding: EdgeInsets.symmetric(horizontal: 4.w),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.all(Radius.circular(20.h)),
-                                color: const Color(0xFF44056C).withOpacity(0.8)
+                                color: const Color(0xFF44056C).withOpacity(0.9)
                             ),
                             child: SingleChildScrollView(
                               child: ContributionRow(screenWidth: screenWidth,),
