@@ -22,6 +22,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchText = TextEditingController();
   bool toastShown = false;
+  bool showProgress = false;
   String transportMedium = "";
   List<dynamic> _placesList = [];
   var uuid = const Uuid();
@@ -73,6 +74,9 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget searchClosed(){
+    setState(() {
+      showProgress = false;
+    });
     return Container(
       height: 45.h,
       width: 380.w,
@@ -162,13 +166,17 @@ class _SearchScreenState extends State<SearchScreen> {
               color: const Color(0xFFABABAB),
             ),
             Expanded(
-                child: ListView.builder(
+                child: showProgress? ShowProgress() : ListView.builder(
                   shrinkWrap: true,
                   itemCount: _placesList.length,
                   itemBuilder: (context, index){
                     return GestureDetector(
                       onTap: () async {
                         widget.locationSearched(_placesList[index]['description']);
+                        _searchText.text = "";
+                        setState(() {
+                          showProgress = true;
+                        });
                       },
                       child: Container(
                         height: 56.h,
@@ -214,6 +222,18 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget ShowProgress(){
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          color: Color(0xFF3479E1),
+        ),
+      ],
     );
   }
 }

@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   bool _showSearchScreen = false;
   bool _showContributionScreen = false;
   bool _navScreen = false;
-  MapType mapStyle = MapType.satellite;
+  MapType mapStyle = MapType.hybrid;
   double containerHeight = 0.0.h;
   double containerWidth = 0.0.h;
   double contributionHeight = 0.0.h;
@@ -35,10 +35,11 @@ class _HomePageState extends State<HomePage> {
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
   double screenWidth = 0.0.w;
-  late Position position;
+  Position? position;
   late Response placePic;
   late Map<String, dynamic> _locationDetails;
   final homePresenter = HomePresenter();
+  Marker? placeMark;
 
   Future<void> initLocation() async {
   final hasPermission = await _handleLocationPermission(context);
@@ -78,17 +79,31 @@ class _HomePageState extends State<HomePage> {
     final response = await homePresenter.getPlaceDetails(placeName);
     _locationDetails = json.decode(response.body)['result'];
     placePic = await homePresenter.getPlaceImage(_locationDetails['photos'][0]["photo_reference"]);
+    final pos = LatLng(_locationDetails["geometry"]["location"]["lat"], _locationDetails["geometry"]["location"]["lng"]);
     setState(() {
       _showSearchScreen = false;
       _navScreen = true;
+      placeMark = Marker(
+        markerId: const MarkerId('place marker'),
+        position: pos,
+        infoWindow: InfoWindow(title: _locationDetails["name"]),
+      );
+      _controller!.animateCamera(
+        CameraUpdate.newLatLng(
+          pos,
+        ),
+      );
     });
   }
 
-  void _centerCamera() {
+  void _centerCamera() async {
+    while (position == null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
     if (_controller != null) {
       _controller!.animateCamera(
         CameraUpdate.newLatLng(
-            LatLng(position.latitude, position.longitude),
+            LatLng(position!.latitude, position!.longitude),
         ),
       );
     }
@@ -96,166 +111,189 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(450, 800),
-      builder: (context, child){
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: Column(
-              children: [
-                SizedBox(
-                  width: 450.w,
-                  height: 800.h,
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                        onMapCreated: _onMapCreated,
-                        scrollGesturesEnabled: true,
-                        myLocationButtonEnabled: false,
-                        myLocationEnabled: true,
-                        zoomGesturesEnabled: true,
-                        zoomControlsEnabled: false,
-                        mapType: mapStyle,
-                        initialCameraPosition: const CameraPosition(
-                          target: LatLng(0,0),
-                          zoom: 15.0,
-                        ),
-                      ),
-                      AnimatedPositioned(
-                          top:  _showSearchScreen? 0.h : 70.h,
-                          left: _showSearchScreen? 0.h : 35.w,
-                          right: _showSearchScreen? 0.h : 35.w,
-                          duration: const Duration(milliseconds: 200),
-                          child: GestureDetector(
-                            onTap: (){
-                              setState(() {
-                                _showSearchScreen = true;
-                              });
-                            },
-                            child: SearchScreen(searchBoxOpen: _showSearchScreen, callback: () {
-                              setState(() {
-                                _showSearchScreen = false;
-                              });
-                            }, locationSearched: (String placeName) { locationSearched(placeName); },)
-                          )
-                      ),
-                      outdoorCondition == "" ? Container() : Positioned(
-                        child: Container(
-                          width: 450.w,
-                          height: 800.h,
-                          color: const Color(0xFF2C2C2C).withOpacity(0.7),
-                          child: OutdoorAnimation(condition: outdoorCondition),
-                        ),
-                      ),
-                      Positioned(
-                          bottom: 150.h,
-                          left: 34.w,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.fastOutSlowIn,
-                            height: containerHeight,
-                            width: containerWidth,
-                            padding: EdgeInsets.symmetric(horizontal: 13.w),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(20.h)),
-                              color: Colors.white.withOpacity(0.9)
-                            ),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  terrainIcon('assets/images/sat_pic.png', () {
-                                    setState(() {
-                                      mapStyle = MapType.satellite;
-                                    });
-                                  }),
-                                  SizedBox(width: 26.w,),
-                                  terrainIcon('assets/images/def_pic.png', () {
-                                    setState(() {
-                                      mapStyle = MapType.normal;
-                                    });
-                                  }),
-                                  SizedBox(width: 26.w,),
-                                  terrainIcon('assets/images/ter_pic.png', () {
-                                    setState(() {
-                                      mapStyle = MapType.terrain;
-                                    });
-                                  }),
-                                ],
-                              ),
-                            ),
-                          )
-                      ),
-                      Positioned(
-                        top: 660.h,
-                        left: 10.w,
-                        child: GestureDetector(
-                          onTap: _toggleContainer,
-                          child: _showSearchScreen? const SizedBox() : CircleAvatar(
-                            radius: 20.h,
-                            backgroundColor: Colors.white70,
-                            child: Icon(Icons.layers_rounded, size: 28.h, color: Colors.black,),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 660.h,
-                        right: 10.w,
-                        child: GestureDetector(
-                          onTap: _centerCamera,
-                          child: _showSearchScreen? const SizedBox() : CircleAvatar(
-                            radius: 20.h,
-                            backgroundColor: Colors.white70,
-                            child: Icon(Icons.gps_fixed_rounded, size: 29.h,
-                              color: const Color(0xFF3263FF),),
-                          ),
-                        ),
-                      ),
-                      AnimatedPositioned(
-                          bottom: 100.h,
-                          left: _showContributionScreen? 10.w : 300.w,
-                          right: _showContributionScreen? 30.w : 180.w,
-                          duration: const Duration(milliseconds: 250),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                            height: contributionHeight,
-                            width: contributionWidth,
-                            padding: EdgeInsets.symmetric(horizontal: 4.w),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(20.h)),
-                                color: const Color(0xFF44056C).withOpacity(0.9)
-                            ),
-                            child: SingleChildScrollView(
-                              child: ContributionRow(screenWidth: screenWidth,),
-                            )
-                          )
-                      ),
-                      Positioned(
-                          top: _navScreen? 650.h : 710.h,
-                          left: _navScreen? 0.w : 10.w,
-                          child: _showSearchScreen? const SizedBox():Container(
-                            width: _navScreen? 450.w : 430.w,
-                            height: _navScreen? 149.5.h : 65.h,
-                            decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.75),
-                                borderRadius: BorderRadius.all(Radius.circular(20.w))
-                            ),
-                            child: _navScreen? LocationInfo() : BottomHomeRow(toggleContribute: _toggleContribute,),
-                          )
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+    return WillPopScope(
+      onWillPop: () async {
+        if(_showSearchScreen){
+          setState(() {
+            _showSearchScreen = false;
+          });
+          return false;
+        }
+        if(placeMark != null){
+          setState(() {
+            placeMark = null;
+            _navScreen = false;
+          });
+          _centerCamera();
+          return false;
+        }
+        return true;
       },
+      child: ScreenUtilInit(
+        designSize: const Size(450, 800),
+        builder: (context, child){
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: Column(
+                children: [
+                  SizedBox(
+                    width: 450.w,
+                    height: 800.h,
+                    child: Stack(
+                      children: [
+                        GoogleMap(
+                          onMapCreated: _onMapCreated,
+                          scrollGesturesEnabled: true,
+                          myLocationButtonEnabled: false,
+                          myLocationEnabled: true,
+                          zoomGesturesEnabled: true,
+                          zoomControlsEnabled: false,
+                          mapType: mapStyle,
+                          initialCameraPosition: const CameraPosition(
+                            target: LatLng(0,0),
+                            zoom: 15.0,
+                          ),
+                          markers: placeMark == null? {}: {placeMark as Marker},
+                        ),
+                        AnimatedPositioned(
+                            top:  _showSearchScreen? 0.h : 70.h,
+                            left: _showSearchScreen? 0.h : 35.w,
+                            right: _showSearchScreen? 0.h : 35.w,
+                            duration: const Duration(milliseconds: 200),
+                            child: GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  _showSearchScreen = true;
+                                });
+                              },
+                              child: SearchScreen(searchBoxOpen: _showSearchScreen, callback: () {
+                                setState(() {
+                                  _showSearchScreen = false;
+                                });
+                              }, locationSearched: (String placeName) { locationSearched(placeName); },)
+                            )
+                        ),
+                        outdoorCondition == "" ? Container() : Positioned(
+                          child: Container(
+                            width: 450.w,
+                            height: 800.h,
+                            color: const Color(0xFF2C2C2C).withOpacity(0.7),
+                            child: OutdoorAnimation(condition: outdoorCondition),
+                          ),
+                        ),
+                        Positioned(
+                            bottom: 150.h,
+                            left: 34.w,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.fastOutSlowIn,
+                              height: containerHeight,
+                              width: containerWidth,
+                              padding: EdgeInsets.symmetric(horizontal: 13.w),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(20.h)),
+                                color: Colors.white.withOpacity(0.9)
+                              ),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    terrainIcon('assets/images/sat_pic.png', () {
+                                      setState(() {
+                                        mapStyle = MapType.hybrid;
+                                      });
+                                      _toggleContainer;
+                                    }),
+                                    SizedBox(width: 26.w,),
+                                    terrainIcon('assets/images/def_pic.png', () {
+                                      setState(() {
+                                        mapStyle = MapType.normal;
+                                      });
+                                      _toggleContainer;
+                                    }),
+                                    SizedBox(width: 26.w,),
+                                    terrainIcon('assets/images/ter_pic.png', () {
+                                      setState(() {
+                                        mapStyle = MapType.terrain;
+                                      });
+                                      _toggleContainer;
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            )
+                        ),
+                        Positioned(
+                          top: 660.h,
+                          left: 10.w,
+                          child: GestureDetector(
+                            onTap: _toggleContainer,
+                            child: _showSearchScreen? const SizedBox() : CircleAvatar(
+                              radius: 20.h,
+                              backgroundColor: Colors.white70,
+                              child: Icon(Icons.layers_rounded, size: 28.h, color: Colors.black,),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 660.h,
+                          right: 10.w,
+                          child: GestureDetector(
+                            onTap: _centerCamera,
+                            child: _showSearchScreen? const SizedBox() : CircleAvatar(
+                              radius: 20.h,
+                              backgroundColor: Colors.white70,
+                              child: Icon(Icons.gps_fixed_rounded, size: 29.h,
+                                color: const Color(0xFF3263FF),),
+                            ),
+                          ),
+                        ),
+                        AnimatedPositioned(
+                            bottom: 100.h,
+                            left: _showContributionScreen? 10.w : 300.w,
+                            right: _showContributionScreen? 30.w : 180.w,
+                            duration: const Duration(milliseconds: 250),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              height: contributionHeight,
+                              width: contributionWidth,
+                              padding: EdgeInsets.symmetric(horizontal: 4.w),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(20.h)),
+                                  color: const Color(0xFF44056C).withOpacity(0.9)
+                              ),
+                              child: SingleChildScrollView(
+                                child: ContributionRow(screenWidth: screenWidth,),
+                              )
+                            )
+                        ),
+                        Positioned(
+                            top: _navScreen? 650.h : 710.h,
+                            left: _navScreen? 0.w : 10.w,
+                            child: _showSearchScreen? const SizedBox():Container(
+                              width: _navScreen? 450.w : 430.w,
+                              height: _navScreen? 149.5.h : 65.h,
+                              decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.75),
+                                  borderRadius: BorderRadius.all(Radius.circular(20.w))
+                              ),
+                              child: _navScreen? LocationInfo() : BottomHomeRow(toggleContribute: _toggleContribute,),
+                            )
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -271,14 +309,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget LocationInfo(){
-    return WillPopScope(
-      onWillPop: () async {
-        setState(() {
-          _navScreen = false;
-        });
-        return false;
-      },
-      child: Container(
+    return Container(
         padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
         color: Colors.white,
         child: Column(
@@ -304,7 +335,7 @@ class _HomePageState extends State<HomePage> {
                       Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
                         style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
                             fontWeight: FontWeight.w400,
-                            color: _locationDetails["opening_hours"]["open_now"]==false?Colors.red : const Color(0xFF1FFF12)),
+                            color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
                       ) : const SizedBox(),
                       SizedBox(height: 5.h,),
                       _locationDetails.containsKey("rating")?
@@ -359,8 +390,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 Future<bool> _handleLocationPermission(BuildContext context) async {
