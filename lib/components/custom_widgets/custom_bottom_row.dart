@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:marg_rakshak/presenter/ServerPresenter.dart';
 import 'package:marg_rakshak/view/report_screen.dart';
 import 'package:marg_rakshak/view/road_side_help.dart';
 
@@ -14,10 +18,13 @@ class BottomHomeRow extends StatefulWidget {
 class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProviderStateMixin{
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
+  late Map<String, dynamic>? homeLocation;
+  final serverPresenter = ServerPresenter();
 
   @override
   void initState() {
     super.initState();
+    getHomeLocation();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -31,6 +38,12 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
     super.dispose();
   }
 
+  Future<void> getHomeLocation() async {
+    setState(() async {
+      homeLocation = json.decode((await serverPresenter.getHomeLocation()).body);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     VoidCallback callback = widget.toggleContribute;
@@ -41,9 +54,16 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
         rowItem(Icons.car_crash_outlined, "Assist", const Color(0xFF5C40F3), ()=>Navigator.push(context,
             MaterialPageRoute(builder: (context) => const RoadSideHelpScreen()))),
         contributeRowItem(callback),
-        rowItem(Icons.warning_amber, "Report", const Color(0xFFECB100), ()=>Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const ReportScreen()))
-        ),
+        homeLocation?['homeLocation']==null? rowHomeItem(Icons.add_home, "Set Home", const Color(
+            0xFFFF00AE), (){
+          serverPresenter.setHouseLocation();
+          setState(() {
+            getHomeLocation();
+          });
+        }
+        ) : rowItem(Icons.home, "Nav Home", const Color(0xFF58B71C), () {
+          /*TODO*/
+        }),
       ],
     );
   }
@@ -99,5 +119,33 @@ Widget rowItem(IconData icon, String text, Color color,VoidCallback callback){
           )
         ],
       ),
+  );
+}
+
+Widget rowHomeItem(IconData icon, String text, Color color,VoidCallback callback){
+  return GestureDetector(
+    onTap: (){
+      Fluttertoast.showToast(
+          msg: "When at your house, double tap icon to set your house location.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: const Color(0xFF574507),
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    },
+    onDoubleTap: callback,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon,color: color,
+          size: 37.w,),
+        Text(text,
+            style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend", fontWeight: FontWeight.w400, color: Colors.black )
+        )
+      ],
+    ),
   );
 }
