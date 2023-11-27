@@ -44,5 +44,17 @@ class ServerModel{
     );
   }
 
-
+  Future<http.Response> makeContribution(String collectionName) async {
+    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    print(position);
+    return await http.post(Uri.parse("${_serverLink}contribute/makeContribution"),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'collectionName': collectionName,
+      'latitude': "${position.latitude}",
+      'longitude': "${position.longitude}"
+    }));
+  }
 }

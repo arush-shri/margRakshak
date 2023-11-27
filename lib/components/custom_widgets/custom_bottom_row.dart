@@ -18,13 +18,13 @@ class BottomHomeRow extends StatefulWidget {
 class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProviderStateMixin{
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
-  late Map<String, dynamic>? homeLocation;
+  Map<String, dynamic>? homeLocation;
   final serverPresenter = ServerPresenter();
 
   @override
   void initState() {
-    super.initState();
     getHomeLocation();
+    super.initState();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -39,8 +39,9 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
   }
 
   Future<void> getHomeLocation() async {
-    setState(() async {
-      homeLocation = json.decode((await serverPresenter.getHomeLocation()).body);
+    final data = await serverPresenter.getHomeLocation();
+    setState(() {
+      homeLocation = json.decode(data.body);
     });
   }
 

@@ -16,4 +16,7 @@ class ServerPresenter{
   Future<Response> setHouseLocation() async {
     return await _serverModel.setHomeLocation();
   }
+  Future<Response> makeContribution(String collectionName) async {
+    return await _serverModel.makeContribution(collectionName);
+  }
 }

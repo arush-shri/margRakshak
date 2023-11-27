@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../presenter/ServerPresenter.dart';
+
 class ContributionRow extends StatefulWidget {
   const ContributionRow({super.key, required this.screenWidth});
   final double screenWidth;
@@ -12,6 +14,9 @@ class ContributionRow extends StatefulWidget {
 }
 
 class _ContributionRowState extends State<ContributionRow> {
+
+  final serverPresenter = ServerPresenter();
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = widget.screenWidth;
@@ -24,11 +29,21 @@ class _ContributionRowState extends State<ContributionRow> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            rowItem("assets/images/accident_icon.png", "Accident\nProne", screenWidth, () { }),
-            rowItem("assets/images/rail_icon.png", "Railway\nCrossing", screenWidth, () { }),
-            rowItem("assets/images/forest_icon.png", "Forest\nArea", screenWidth, () { }),
-            rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", screenWidth, () { }),
-            rowItem("assets/images/ghat_icon.png", "Other\nRegion", screenWidth, () { }),
+            rowItem("assets/images/accident_icon.png", "Accident\nProne", screenWidth, () {
+              serverPresenter.makeContribution("AccidentArea");
+            }),
+            rowItem("assets/images/rail_icon.png", "Railway\nCrossing", screenWidth, () {
+              serverPresenter.makeContribution("RailwayCross");
+            }),
+            rowItem("assets/images/forest_icon.png", "Forest\nArea", screenWidth, () {
+              serverPresenter.makeContribution("ForestArea");
+            }),
+            rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", screenWidth, () {
+              serverPresenter.makeContribution("GhatRegion");
+            }),
+            rowItem("assets/images/other_icon.png", "Other\nRegion", screenWidth, () {
+              serverPresenter.makeContribution("OtherRegion");
+            }),
           ],
         ),
       ),
