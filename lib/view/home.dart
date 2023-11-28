@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 import 'package:marg_rakshak/components/custom_widgets/contribution_row.dart';
 import 'package:marg_rakshak/components/custom_widgets/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
+import 'package:marg_rakshak/view/placeInfo.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
 
 import '../presenter/HomePresenter.dart';
@@ -39,6 +40,7 @@ class _HomePageState extends State<HomePage> {
   late Map<String, dynamic> _locationDetails;
   final homePresenter = HomePresenter();
   Marker? placeMark;
+  double _navScreenTop = 650.h;
 
   Future<void> initLocation() async {
   final hasPermission = await _handleLocationPermission(context);
@@ -80,6 +82,9 @@ class _HomePageState extends State<HomePage> {
     placePic = await homePresenter.getPlaceImage(_locationDetails['photos'][0]["photo_reference"]);
     final pos = LatLng(_locationDetails["geometry"]["location"]["lat"], _locationDetails["geometry"]["location"]["lng"]);
     setState(() {
+      if(_locationDetails.containsKey("opening_hours")){
+        _navScreenTop = 615.h;
+      }
       _showSearchScreen = false;
       _navScreen = true;
       placeMark = Marker(
@@ -271,17 +276,20 @@ class _HomePageState extends State<HomePage> {
                               )
                             )
                         ),
-                        Positioned(
-                            top: _navScreen? 650.h : 710.h,
-                            left: _navScreen? 0.w : 10.w,
-                            child: _showSearchScreen? const SizedBox():Container(
-                              width: _navScreen? 450.w : 430.w,
-                              height: _navScreen? 149.5.h : 65.h,
+                        _navScreen? Positioned(
+                            top: _navScreenTop,
+                            child: _showSearchScreen? const SizedBox() : locationInfo()
+                        ) : Positioned(
+                            top: 710.h,
+                            left: 10.w,
+                            child: _showSearchScreen? const SizedBox() : Container(
+                              width: 430.w,
+                              height: 65.h,
                               decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.75),
                                   borderRadius: BorderRadius.all(Radius.circular(20.w))
                               ),
-                              child: _navScreen? LocationInfo() : BottomHomeRow(toggleContribute: _toggleContribute,),
+                              child: BottomHomeRow(toggleContribute: _toggleContribute,),
                             )
                         )
                       ],
@@ -307,7 +315,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget LocationInfo(){
+  Widget locationInfo(){
     return Container(
         padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
         color: Colors.white,
@@ -322,7 +330,6 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 5.h,),
             SizedBox(
               width: 450.w,
-              height: 110.h,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -330,19 +337,46 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      Text("Distance time",
+                          style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                              fontWeight: FontWeight.w400, color: Colors.black ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 5.h,),
                       _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
                       Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
-                        style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                        style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
                             fontWeight: FontWeight.w400,
                             color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
                       ) : const SizedBox(),
                       SizedBox(height: 5.h,),
                       _locationDetails.containsKey("rating")?
-                      Text("RATING: ${_locationDetails["rating"].toString()}",
-                        style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                            fontWeight: FontWeight.w400, color: Colors.black),
+                      Row(
+                        children: [
+                          Text("RATING: ${_locationDetails["rating"].toString()}",
+                            style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w400, color: Colors.black),                             //total
+                          ),
+                          const Icon(Icons.star, color: Color(0xFFFFD700),),
+                          Text("(${_locationDetails["user_ratings_total"].toString()})",
+                            style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w500, color: Colors.blueGrey),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ) : const SizedBox(),
-                      SizedBox(height: 15.h,),
+                      GestureDetector(
+                          onTap: (){
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) => PlaceInformation(locationDetails: _locationDetails)));
+                          },
+                          child: Text("Show more details",
+                            style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w500, color: Colors.blue,
+                                decoration: TextDecoration.underline),
+                            overflow: TextOverflow.ellipsis,
+                          )
+                      ),
                       Row(
                         children: [
                           ElevatedButton(
