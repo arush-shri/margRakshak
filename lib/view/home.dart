@@ -8,7 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'package:marg_rakshak/components/custom_widgets/contribution_row.dart';
-import 'package:marg_rakshak/components/custom_widgets/outdoor_animator.dart';
+import 'package:marg_rakshak/view/danger_alert.dart';
+import 'package:marg_rakshak/view/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/placeInfo.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
@@ -34,6 +35,7 @@ class _HomePageState extends State<HomePage> {
   double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
+  String dangerAhead = "";
   double screenWidth = 0.0.w;
   Position? position;
   late Response placePic;
@@ -185,6 +187,14 @@ class _HomePageState extends State<HomePage> {
                             height: 800.h,
                             color: const Color(0xFF2C2C2C).withOpacity(0.7),
                             child: OutdoorAnimation(condition: outdoorCondition),
+                          ),
+                        ),
+                        dangerAhead == "" ? Container() : Positioned(
+                          child: Container(
+                            width: 450.w,
+                            height: 800.h,
+                            color: const Color(0xFF2C2C2C).withOpacity(0.7),
+                            child: DangerAlert(dangerType: dangerAhead),
                           ),
                         ),
                         Positioned(

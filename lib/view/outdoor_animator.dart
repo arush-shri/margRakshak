@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' show pi;
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -11,7 +10,7 @@ class OutdoorAnimation extends StatefulWidget {
   State<OutdoorAnimation> createState() => _OutdoorAnimationState();
 }
 
-class _OutdoorAnimationState extends State<OutdoorAnimation> with SingleTickerProviderStateMixin {
+class _OutdoorAnimationState extends State<OutdoorAnimation> {
 
   late String imageAsset;
   late String displayText;
