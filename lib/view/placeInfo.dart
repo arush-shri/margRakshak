@@ -115,11 +115,20 @@ class _PlaceInformationState extends State<PlaceInformation> {
                                 size: 34.h ,),
                           ),
                           Expanded(
-                              child: Text( widget.locationDetails["opening_hours"]["open_now"]? "Open": "Close",
-                                style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
-                                    fontWeight: FontWeight.w400,
-                                    color: widget.locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
-                              ),
+                              child: Row(
+                                children: [
+                                  Text( widget.locationDetails["opening_hours"]["open_now"]? "Open:": "Close:",
+                                    style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                        fontWeight: FontWeight.w400,
+                                        color: widget.locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
+                                  ),
+                                  Text( " ${getPlaceTiming()}",
+                                    style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              )
                           ),
                           PopupMenuButton(
                             position: PopupMenuPosition.under,
@@ -189,5 +198,39 @@ class _PlaceInformationState extends State<PlaceInformation> {
     setState(() {
       imageResponseList?.add(response);
     });
+  }
+  String getPlaceTiming(){
+    Map<int, String> dayMap = {
+      1: 'Monday',
+      2: 'Tuesday',
+      3: 'Wednesday',
+      4: 'Thursday',
+      5: 'Friday',
+      6: 'Saturday',
+      7: 'Sunday',
+    };
+    DateTime date = DateTime.now();
+    int dayNum = date.weekday;
+
+    if(!widget.locationDetails["opening_hours"]["open_now"]){
+      dayNum = (dayNum % (widget.locationDetails["opening_hours"]["periods"].length)) as int;
+      final openingDate = widget.locationDetails["opening_hours"]["periods"][dayNum];
+      return "Opens ${dayMap[openingDate["open"]["day"]]!} at ${_convertTime(openingDate["open"]["time"])}";
+    }
+    final openingDate = widget.locationDetails["opening_hours"]["periods"][dayNum-1];
+    return"Closes at ${_convertTime(openingDate["close"]["time"])}";
+  }
+
+  String _convertTime(String time){
+    int hour = int.parse(time.substring(0,2));
+    int min = int.parse(time.substring(2,4));
+    String amPm = hour>=12? "PM" : "AM";
+    if(hour==00){
+      hour=12;
+    }
+    else{
+      hour = hour%12;
+    }
+    return "$hour:$min $amPm";
   }
 }

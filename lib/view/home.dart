@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
@@ -344,10 +344,19 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 5.h,),
                       _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
-                      Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
-                        style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                            fontWeight: FontWeight.w400,
-                            color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
+                      Row(
+                        children: [
+                          Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+                            style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w400,
+                                color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
+                          ),
+                          Text( ": ${getPlaceTiming()}",
+                            style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black),
+                          ),
+                        ],
                       ) : const SizedBox(),
                       SizedBox(height: 5.h,),
                       _locationDetails.containsKey("rating")?
@@ -424,6 +433,40 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       );
+  }
+  String getPlaceTiming(){
+    Map<int, String> dayMap = {
+      1: 'Monday',
+      2: 'Tuesday',
+      3: 'Wednesday',
+      4: 'Thursday',
+      5: 'Friday',
+      6: 'Saturday',
+      7: 'Sunday',
+    };
+    DateTime date = DateTime.now();
+    int dayNum = date.weekday;
+
+    if(!_locationDetails["opening_hours"]["open_now"]){
+      dayNum = (dayNum % (_locationDetails["opening_hours"]["periods"].length)) as int;
+      final openingDate = _locationDetails["opening_hours"]["periods"][dayNum];
+      return "Opens ${dayMap[openingDate["open"]["day"]]!} at ${_convertTime(openingDate["open"]["time"])}";
+    }
+    final openingDate = _locationDetails["opening_hours"]["periods"][dayNum-1];
+    return"Closes at ${_convertTime(openingDate["close"]["time"])}";
+  }
+
+  String _convertTime(String time){
+    int hour = int.parse(time.substring(0,2));
+    int min = int.parse(time.substring(2,4));
+    String amPm = hour>=12? "PM" : "AM";
+    if(hour==00){
+      hour=12;
+    }
+    else{
+      hour = hour%12;
+    }
+    return "$hour:$min $amPm";
   }
 }
 Future<bool> _handleLocationPermission(BuildContext context) async {
