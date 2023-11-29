@@ -329,130 +329,133 @@ class _HomePageState extends State<HomePage> {
     return Container(
         padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
         color: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_locationDetails['name'],
-              style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
-                  fontWeight: FontWeight.w500, color: Colors.black),
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 5.h,),
-            SizedBox(
-              width: 450.w,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text("Distance time",
-                          style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                              fontWeight: FontWeight.w400, color: Colors.black ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 5.h,),
-                      _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
-                      Row(
-                        children: [
-                          Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_locationDetails['name'],
+                style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
+                    fontWeight: FontWeight.w500, color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 5.h,),
+              SizedBox(
+                width: 450.w,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text("Distance time",
                             style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400,
-                                color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
-                          ),
-                          Text( ": ${getPlaceTiming()}",
-                            style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400,
-                                color: Colors.black),
-                          ),
-                        ],
-                      ) : const SizedBox(),
-                      SizedBox(height: 5.h,),
-                      _locationDetails.containsKey("rating")?
-                      Row(
-                        children: [
-                          Text("RATING: ${_locationDetails["rating"].toString()}",
-                            style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400, color: Colors.black),                             //total
-                          ),
-                          const Icon(Icons.star, color: Color(0xFFFFD700),),
-                          Text("(${_locationDetails["user_ratings_total"].toString()})",
-                            style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w500, color: Colors.blueGrey),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ) : const SizedBox(),
-                      GestureDetector(
-                          onTap: (){
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) => PlaceInformation(locationDetails: _locationDetails)));
-                          },
-                          child: Text("Show more details",
-                            style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w500, color: Colors.blue,
-                                decoration: TextDecoration.underline),
-                            overflow: TextOverflow.ellipsis,
-                          )
-                      ),
-                      Row(
-                        children: [
-                          ElevatedButton(
-                            onPressed: ()=>{},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(400.w))
-                              )
+                                fontWeight: FontWeight.w400, color: Colors.black ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 5.h,),
+                        _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
+                        Row(
+                          children: [
+                            Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+                              style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w400,
+                                  color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
                             ),
-                            child: Text(
-                                "START",
+                            Text( ": ${getPlaceTiming()}",
+                              style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black),
+                            ),
+                          ],
+                        ) : const SizedBox(),
+                        SizedBox(height: 5.h,),
+                        _locationDetails.containsKey("rating")?
+                        Row(
+                          children: [
+                            Text("RATING: ${_locationDetails["rating"].toString()}",
+                              style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w400, color: Colors.black),                             //total
+                            ),
+                            const Icon(Icons.star, color: Color(0xFFFFD700),),
+                            Text("(${_locationDetails["user_ratings_total"].toString()})",
+                              style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w500, color: Colors.blueGrey),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ) : const SizedBox(),
+                        GestureDetector(
+                            onTap: (){
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) => PlaceInformation(locationDetails: _locationDetails)));
+                            },
+                            child: Text("Show more details",
+                              style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w500, color: Colors.blue,
+                                  decoration: TextDecoration.underline),
+                              overflow: TextOverflow.ellipsis,
+                            )
+                        ),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: ()=>{},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(400.w))
+                                )
+                              ),
+                              child: Text(
+                                  "START",
+                                  style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
+                                      fontWeight: FontWeight.w400, color: Colors.white),
+                                ),
+                            ),
+                            SizedBox(width: 22.w,),
+                            ElevatedButton(
+                              onPressed: ()=>{},
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurpleAccent,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(400.w))
+                                  )
+                              ),
+                              child: Text(
+                                "SHARE",
                                 style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
                                     fontWeight: FontWeight.w400, color: Colors.white),
                               ),
-                          ),
-                          SizedBox(width: 22.w,),
-                          ElevatedButton(
-                            onPressed: ()=>{},
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurpleAccent,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(400.w))
-                                )
                             ),
-                            child: Text(
-                              "SHARE",
-                              style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w400, color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    width: 200.w,
-                    height: 100.h,
-                    child: Image.memory(Uint8List.fromList(placePic.bodyBytes),
-                        fit: BoxFit.fill,),
-                  )
-                ],
+                          ],
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      width: 180.w,
+                      height: 100.h,
+                      child: Image.memory(Uint8List.fromList(placePic.bodyBytes),
+                          fit: BoxFit.fill,),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
   }
   String getPlaceTiming(){
     Map<int, String> dayMap = {
-      1: 'Monday',
-      2: 'Tuesday',
-      3: 'Wednesday',
-      4: 'Thursday',
-      5: 'Friday',
-      6: 'Saturday',
-      7: 'Sunday',
+      1: 'Mon',
+      2: 'Tue',
+      3: 'Wed',
+      4: 'Thu',
+      5: 'Fri',
+      6: 'Sat',
+      7: 'Sun',
     };
     DateTime date = DateTime.now();
     int dayNum = date.weekday;

@@ -55,21 +55,26 @@ class _PlaceInformationState extends State<PlaceInformation> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
+                          SizedBox(width: 10.w,),
                           Text("RATING: ${widget.locationDetails["rating"].toString()}",
-                            style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                            style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                 fontWeight: FontWeight.w400, color: Colors.white),                             //total
                           ),
                           SizedBox(width: 4.w,),
                           const Icon(Icons.star, color: Color(0xFFFFD700),),
-                          SizedBox(width: 4.w,),
+                          SizedBox(width: 8.w,),
                           Text("(${widget.locationDetails["user_ratings_total"].toString()})",
                             style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w500, color: Colors.blueGrey),
+                                fontWeight: FontWeight.w500, color: Colors.grey),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      SizedBox(height: 20.h,),
+                      SizedBox(height: 10.h,),
+                      Divider(
+                        thickness: 2.h,
+                        color: const Color(0xFFA8A8A8),
+                      ),
                       Row(
                         children: [
                           SizedBox(
@@ -80,13 +85,17 @@ class _PlaceInformationState extends State<PlaceInformation> {
                           ),
                           Expanded(
                               child: Text("Address: ${widget.locationDetails["formatted_address"]}",
-                                style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
+                                style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                     fontWeight: FontWeight.w400, color: Colors.white),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                               )
                           ),
                         ],
+                      ),
+                      Divider(
+                        thickness: 2.h,
+                        color: const Color(0xFFA8A8A8),
                       ),
                       Row(
                         children: [
@@ -97,13 +106,17 @@ class _PlaceInformationState extends State<PlaceInformation> {
                                 size: 34.h ,),
                           ),
                           Expanded(
-                              child: Text("Phone Number: ${widget.locationDetails["formatted_phone_number"]}",
-                                style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
+                              child: Text("${widget.locationDetails["formatted_phone_number"]}",
+                                style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                     fontWeight: FontWeight.w400, color: Colors.white),
                                 overflow: TextOverflow.ellipsis,
                               ),
                           ),
                         ],
+                      ),
+                      Divider(
+                        thickness: 2.h,
+                        color: const Color(0xFFA8A8A8),
                       ),
                       widget.locationDetails.containsKey("opening_hours") && widget.locationDetails["opening_hours"]["open_now"]!=null?
                       Row(
@@ -118,7 +131,7 @@ class _PlaceInformationState extends State<PlaceInformation> {
                               child: Row(
                                 children: [
                                   Text( widget.locationDetails["opening_hours"]["open_now"]? "Open:": "Close:",
-                                    style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                    style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                         fontWeight: FontWeight.w400,
                                         color: widget.locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
                                   ),
@@ -132,14 +145,14 @@ class _PlaceInformationState extends State<PlaceInformation> {
                           ),
                           PopupMenuButton(
                             position: PopupMenuPosition.under,
-                            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 34.h,),
-                            color: const Color(0xFF9C21FF),
+                            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 34.h, color: Colors.orange,),
+                            color: const Color(0xFF7116AF),
                             itemBuilder: (context) {
                               return List.generate(
                                   widget.locationDetails["opening_hours"]["weekday_text"].length, (index) {
                                 return PopupMenuItem(
                                     child: Text(widget.locationDetails["opening_hours"]["weekday_text"][index],
-                                      style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                      style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                           fontWeight: FontWeight.w400, color: Colors.white),
                                       overflow: TextOverflow.ellipsis, // Adjust the font size as needed
                                     )
@@ -150,6 +163,10 @@ class _PlaceInformationState extends State<PlaceInformation> {
                           )
                         ],
                       ) : const SizedBox(),
+                      Divider(
+                        thickness: 2.h,
+                        color: const Color(0xFFA8A8A8),
+                      ),
                       Row(
                         children: [
                           SizedBox(
@@ -165,7 +182,7 @@ class _PlaceInformationState extends State<PlaceInformation> {
                           ),
                         ],
                       ),
-                      imageResponseList!.length>1?SizedBox(
+                      imageResponseList!.length == (widget.locationDetails["photos"]).length?SizedBox(
                         height: 250.h,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -201,13 +218,13 @@ class _PlaceInformationState extends State<PlaceInformation> {
   }
   String getPlaceTiming(){
     Map<int, String> dayMap = {
-      1: 'Monday',
-      2: 'Tuesday',
-      3: 'Wednesday',
-      4: 'Thursday',
-      5: 'Friday',
-      6: 'Saturday',
-      7: 'Sunday',
+      1: 'Mon',
+      2: 'Tue',
+      3: 'Wed',
+      4: 'Thu',
+      5: 'Fri',
+      6: 'Sat',
+      7: 'Sun',
     };
     DateTime date = DateTime.now();
     int dayNum = date.weekday;
