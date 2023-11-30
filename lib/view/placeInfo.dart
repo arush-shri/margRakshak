@@ -35,179 +35,258 @@ class _PlaceInformationState extends State<PlaceInformation> {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           home: Scaffold(
-            body: SingleChildScrollView(
-                child: Container(
-                  height: 800.h,
+            body: Container(
+                  height: double.infinity,
                   color: const Color(0xFF00233F),
                   padding: EdgeInsets.symmetric(horizontal: 10.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 80.h,),
-                      Center(
-                        child: Text(widget.locationDetails['name'],
-                          style: TextStyle(fontSize: 32.sp, fontFamily: "Lexend",
-                              fontWeight: FontWeight.w500, color: Colors.white),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(height: 20.h,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          SizedBox(width: 10.w,),
-                          Text("RATING: ${widget.locationDetails["rating"].toString()}",
-                            style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400, color: Colors.white),                             //total
-                          ),
-                          SizedBox(width: 4.w,),
-                          const Icon(Icons.star, color: Color(0xFFFFD700),),
-                          SizedBox(width: 8.w,),
-                          Text("(${widget.locationDetails["user_ratings_total"].toString()})",
-                            style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w500, color: Colors.grey),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 80.h,),
+                        Center(
+                          child: Text(widget.locationDetails['name'],
+                            style: TextStyle(fontSize: 32.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w500, color: Colors.white),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 10.h,),
-                      Divider(
-                        thickness: 2.h,
-                        color: const Color(0xFFA8A8A8),
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80.w,
-                            height: 50.h,
-                            child: Icon(Icons.location_on, color: Colors.indigoAccent,
-                                size: 40.h ,),
+                        ),
+                        SizedBox(height: 20.h,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 10.w,),
+                            Text("RATING: ${widget.locationDetails["rating"].toString()}",
+                              style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w400, color: Colors.white),                             //total
+                            ),
+                            SizedBox(width: 4.w,),
+                            const Icon(Icons.star, color: Color(0xFFFFD700),),
+                            SizedBox(width: 8.w,),
+                            Text("(${widget.locationDetails["user_ratings_total"].toString()})",
+                              style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w500, color: Colors.grey),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10.h,),
+                        Divider(
+                          thickness: 2.h,
+                          color: const Color(0xFFA8A8A8),
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80.w,
+                              height: 50.h,
+                              child: Icon(Icons.location_on, color: Colors.indigoAccent,
+                                  size: 40.h ,),
+                            ),
+                            Expanded(
+                                child: Text("Address: ${widget.locationDetails["formatted_address"]}",
+                                  style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                                      fontWeight: FontWeight.w400, color: Colors.white),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                            ),
+                          ],
+                        ),
+                        Divider(
+                          thickness: 2.h,
+                          color: const Color(0xFFA8A8A8),
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80.w,
+                              height: 50.h,
+                              child: Icon(Icons.phone, color: Colors.indigoAccent,
+                                  size: 34.h ,),
+                            ),
+                            Expanded(
+                                child: Text("${widget.locationDetails["formatted_phone_number"]}",
+                                  style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                                      fontWeight: FontWeight.w400, color: Colors.white),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ),
+                          ],
+                        ),
+                        Divider(
+                          thickness: 2.h,
+                          color: const Color(0xFFA8A8A8),
+                        ),
+                        widget.locationDetails.containsKey("opening_hours") && widget.locationDetails["opening_hours"]["open_now"]!=null?
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80.w,
+                              height: 50.h,
+                              child: Icon(Icons.access_time_filled, color: Colors.indigoAccent,
+                                  size: 34.h ,),
+                            ),
+                            Expanded(
+                                child: Row(
+                                  children: [
+                                    Text( widget.locationDetails["opening_hours"]["open_now"]? "Open:": "Close:",
+                                      style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                                          fontWeight: FontWeight.w400,
+                                          color: widget.locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
+                                    ),
+                                    Text( " ${getPlaceTiming()}",
+                                      style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.white),
+                                    ),
+                                  ],
+                                )
+                            ),
+                            PopupMenuButton(
+                              position: PopupMenuPosition.under,
+                              icon: Icon(Icons.keyboard_arrow_down_rounded, size: 34.h, color: Colors.orange,),
+                              color: const Color(0xFF7116AF),
+                              itemBuilder: (context) {
+                                return List.generate(
+                                    widget.locationDetails["opening_hours"]["weekday_text"].length, (index) {
+                                  return PopupMenuItem(
+                                      child: Text(widget.locationDetails["opening_hours"]["weekday_text"][index],
+                                        style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                                            fontWeight: FontWeight.w400, color: Colors.white),
+                                        overflow: TextOverflow.ellipsis, // Adjust the font size as needed
+                                      )
+                                  );
+                                }
+                                );
+                              },
+                            )
+                          ],
+                        ) : const SizedBox(),
+                        Divider(
+                          thickness: 2.h,
+                          color: const Color(0xFFA8A8A8),
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80.w,
+                              height: 70.h,
+                              child: Icon(Icons.photo_sharp, color: Colors.indigoAccent,
+                                  size: 36.h ,),
+                            ),
+                            Text("Photos:",
+                              style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
+                                  fontWeight: FontWeight.w500, color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                        imageResponseList!.length == (widget.locationDetails["photos"]).length?SizedBox(
+                          height: 250.h,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: imageResponseList?.length,
+                            itemBuilder: (context, index) {
+                              return SizedBox(
+                                child: Image.memory(Uint8List.fromList(imageResponseList![index].bodyBytes),
+                                    fit: BoxFit.fill),
+                              );
+                            },
                           ),
-                          Expanded(
-                              child: Text("Address: ${widget.locationDetails["formatted_address"]}",
-                                style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
-                                    fontWeight: FontWeight.w400, color: Colors.white),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              )
+                        ) : const Center(
+                          child: SizedBox(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF135ED0),
+                            ),
                           ),
-                        ],
-                      ),
-                      Divider(
-                        thickness: 2.h,
-                        color: const Color(0xFFA8A8A8),
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80.w,
-                            height: 50.h,
-                            child: Icon(Icons.phone, color: Colors.indigoAccent,
+                        ),
+                        SizedBox(height: 6.h,),
+                        Divider(
+                          thickness: 2.h,
+                          color: const Color(0xFFA8A8A8),
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80.w,
+                              height: 50.h,
+                              child: Icon(Icons.reviews_outlined, color: Colors.indigoAccent,
                                 size: 34.h ,),
-                          ),
-                          Expanded(
-                              child: Text("${widget.locationDetails["formatted_phone_number"]}",
+                            ),
+                            Expanded(
+                              child: Text("REVIEWS: ",
                                 style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
                                     fontWeight: FontWeight.w400, color: Colors.white),
                                 overflow: TextOverflow.ellipsis,
                               ),
-                          ),
-                        ],
-                      ),
-                      Divider(
-                        thickness: 2.h,
-                        color: const Color(0xFFA8A8A8),
-                      ),
-                      widget.locationDetails.containsKey("opening_hours") && widget.locationDetails["opening_hours"]["open_now"]!=null?
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80.w,
-                            height: 50.h,
-                            child: Icon(Icons.access_time_filled, color: Colors.indigoAccent,
-                                size: 34.h ,),
-                          ),
-                          Expanded(
-                              child: Row(
-                                children: [
-                                  Text( widget.locationDetails["opening_hours"]["open_now"]? "Open:": "Close:",
-                                    style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
-                                        fontWeight: FontWeight.w400,
-                                        color: widget.locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
-                                  ),
-                                  Text( " ${getPlaceTiming()}",
-                                    style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white),
-                                  ),
-                                ],
-                              )
-                          ),
-                          PopupMenuButton(
-                            position: PopupMenuPosition.under,
-                            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 34.h, color: Colors.orange,),
-                            color: const Color(0xFF7116AF),
-                            itemBuilder: (context) {
-                              return List.generate(
-                                  widget.locationDetails["opening_hours"]["weekday_text"].length, (index) {
-                                return PopupMenuItem(
-                                    child: Text(widget.locationDetails["opening_hours"]["weekday_text"][index],
-                                      style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
-                                          fontWeight: FontWeight.w400, color: Colors.white),
-                                      overflow: TextOverflow.ellipsis, // Adjust the font size as needed
-                                    )
-                                );
-                              }
-                              );
-                            },
-                          )
-                        ],
-                      ) : const SizedBox(),
-                      Divider(
-                        thickness: 2.h,
-                        color: const Color(0xFFA8A8A8),
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80.w,
-                            height: 70.h,
-                            child: Icon(Icons.photo_sharp, color: Colors.indigoAccent,
-                                size: 36.h ,),
-                          ),
-                          Text("Photos:",
-                            style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w500, color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                      imageResponseList!.length == (widget.locationDetails["photos"]).length?SizedBox(
-                        height: 250.h,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: imageResponseList?.length,
-                          itemBuilder: (context, index) {
-                            return SizedBox(
-                              child: Image.memory(Uint8List.fromList(imageResponseList![index].bodyBytes),
-                                  fit: BoxFit.fill),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                      ) : const Center(
-                        child: SizedBox(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF135ED0),
-                          ),
-                        ),
-                      ),
-                    ],
+                        for(int index=0; index<widget.locationDetails["reviews"].length; index++) showReview(index),
+                      ],
+                    ),
                   ),
                 ),
-              ),
           ),
         );
       },
+    );
+  }
+
+  Widget showReview(int index){
+    return SizedBox(
+      width: 450.w,
+      height: 180.h,
+      child: Column(
+        children: [
+          Divider(
+            thickness: 2.h,
+            color: const Color(0xFFA8A8A8),
+          ),
+          SizedBox(height: 6.h,),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                  height: 32.h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(400.w),
+                  ),
+                  child: Image.network(widget.locationDetails["reviews"][index]["profile_photo_url"],
+                    fit: BoxFit.fill,)
+              ),
+              SizedBox(width: 13.w,),
+              Text(widget.locationDetails["reviews"][index]["author_name"],
+                style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h,),
+          Row(
+            children: [
+              Text("RATING: ${widget.locationDetails["reviews"][index]["rating"]}",
+                style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                    fontWeight: FontWeight.w400, color: Colors.white),
+              ),
+              SizedBox(width: 4.w,),
+              const Icon(Icons.star, color: Color(0xFFFFD700),),
+              SizedBox(width: 6.w,),
+              Text("(${widget.locationDetails["reviews"][index]["relative_time_description"]})",
+                style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                    fontWeight: FontWeight.w400, color: Colors.grey),
+              ),
+            ],
+          ),
+          Text("${widget.locationDetails["reviews"][index]["text"]}",
+            style: TextStyle(fontSize: 21.sp, fontFamily: "Lexend",
+                fontWeight: FontWeight.w400, color: Colors.white),
+            overflow: TextOverflow.ellipsis,maxLines: 4,
+          ),
+        ],
+      ),
     );
   }
   Future<void> getImage(String reference) async {
