@@ -24,4 +24,21 @@ class GoogleMapsQuery{
     String baseUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=$photoRefer&key=$_apiKey";
     return await http.get(Uri.parse(baseUrl));
   }
+
+  Future<dynamic> getDirection(double destLat, double destLon, double myLat, double myLon) async {
+    String baseUrl = "https://maps.googleapis.com/maps/api/directions/json?destination=$destLat,$destLon&origin=$myLat,$myLon&key=$_apiKey";
+    final response = await http.get(Uri.parse(baseUrl));
+    var directionsList = json.decode(response.body);
+    if(directionsList["status"] == "ZERO_RESULTS")
+    {
+      directionsList = [];
+    }
+    else{
+      directionsList = directionsList["routes"];
+    }
+    if(directionsList.length > 1){
+      directionsList.sort((a,b) => a["legs"]["duration"]["value"].compareTo(b["legs"]["duration"]["value"]));
+    }
+    return directionsList[0];
+  }
 }

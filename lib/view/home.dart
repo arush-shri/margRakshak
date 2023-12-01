@@ -13,8 +13,8 @@ import 'package:marg_rakshak/view/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/placeInfo.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
-
 import '../presenter/HomePresenter.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -42,18 +42,35 @@ class _HomePageState extends State<HomePage> {
   late Map<String, dynamic> _locationDetails;
   final homePresenter = HomePresenter();
   Marker? placeMark;
+  late StreamSubscription<Position> positionStream;
   double _navScreenTop = 650.h;
+  List<PointLatLng>? _directionLine;
 
   Future<void> initLocation() async {
-  final hasPermission = await _handleLocationPermission(context);
-  if(hasPermission){
-      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    final hasPermission = await _handleLocationPermission(context);
+    if(hasPermission){
+        position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+        positionStream = Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation,distanceFilter: 1)
+        ).listen((Position newPosition) {
+          setState(() {
+            position = newPosition;
+            _centerCamera();
+          });
+        });
+    }
   }
-}
   @override
   void initState() {
     initLocation();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    positionStream.cancel();
+    super.dispose();
   }
 
   void _toggleContainer() {
@@ -81,9 +98,18 @@ class _HomePageState extends State<HomePage> {
   Future<void> locationSearched(String placeName) async {
     final response = await homePresenter.getPlaceDetails(placeName);
     _locationDetails = json.decode(response.body)['result'];
+    final directionResponse = await homePresenter.getDirection(
+        _locationDetails["geometry"]["location"]["lat"],
+        _locationDetails["geometry"]["location"]["lng"],
+        position!.latitude,
+        position!.longitude
+    );
     placePic = await homePresenter.getPlaceImage(_locationDetails['photos'][0]["photo_reference"]);
     final pos = LatLng(_locationDetails["geometry"]["location"]["lat"], _locationDetails["geometry"]["location"]["lng"]);
     setState(() {
+      if(directionResponse.length!=0){
+        _directionLine = PolylinePoints().decodePolyline(directionResponse["overview_polyline"]["points"]);
+      }
       if(_locationDetails.containsKey("opening_hours")){
         _navScreenTop = 615.h;
       }
@@ -108,8 +134,8 @@ class _HomePageState extends State<HomePage> {
     }
     if (_controller != null) {
       _controller!.animateCamera(
-        CameraUpdate.newLatLng(
-            LatLng(position!.latitude, position!.longitude),
+        CameraUpdate.newLatLngZoom(
+            LatLng(position!.latitude, position!.longitude), 17.0
         ),
       );
     }
@@ -127,6 +153,9 @@ class _HomePageState extends State<HomePage> {
         }
         if(placeMark != null){
           setState(() {
+            if(_directionLine!=null){
+              _directionLine = null;
+            }
             placeMark = null;
             _navScreen = false;
           });

@@ -17,4 +17,8 @@ class HomePresenter {
   Future<Response> getPlaceImage(String photoRefer) async {
     return await googleMapQuery.getPlaceImage(photoRefer);
   }
+
+  Future<dynamic> getDirection(double destLat, double destLon, double myLat, double myLon) async {
+    return await googleMapQuery.getDirection(destLat, destLon, myLat, myLon);
+  }
 }

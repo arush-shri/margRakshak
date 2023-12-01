@@ -1,13 +1,14 @@
 import 'package:http/http.dart';
 import 'package:marg_rakshak/model/ServerModel.dart';
 
-class ServerPresenter{
+class ServerPresenter {
 
   ServerPresenter._privateConstructor();
   static final ServerPresenter _instance = ServerPresenter._privateConstructor();
-  final _serverModel = ServerModel();
+  static final _serverModel = ServerModel();
 
   factory ServerPresenter(){
+    _serverModel.checkUserExists();
     return _instance;
   }
   Future<Response> getHomeLocation() async {
