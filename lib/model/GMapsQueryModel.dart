@@ -26,7 +26,7 @@ class GoogleMapsQuery{
   }
 
   Future<dynamic> getDirection(double destLat, double destLon, double myLat, double myLon) async {
-    String baseUrl = "https://maps.googleapis.com/maps/api/directions/json?destination=$destLat,$destLon&origin=$myLat,$myLon&key=$_apiKey";
+    String baseUrl = "https://maps.googleapis.com/maps/api/directions/json?destination=$destLat,$destLon&origin=$myLat,$myLon&units=metric&key=$_apiKey";
     final response = await http.get(Uri.parse(baseUrl));
     var directionsList = json.decode(response.body);
     if(directionsList["status"] == "ZERO_RESULTS")

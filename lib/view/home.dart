@@ -13,6 +13,7 @@ import 'package:marg_rakshak/view/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/placeInfo.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
+import 'package:share_plus/share_plus.dart';
 import '../presenter/HomePresenter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
@@ -24,7 +25,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  GoogleMapController? _controller;
+  late GoogleMapController _controller;
   bool _showSearchScreen = false;
   bool _showContributionScreen = false;
   bool _navScreen = false;
@@ -43,8 +44,12 @@ class _HomePageState extends State<HomePage> {
   final homePresenter = HomePresenter();
   Marker? placeMark;
   late StreamSubscription<Position> positionStream;
-  double _navScreenTop = 650.h;
-  List<PointLatLng>? _directionLine;
+  final Set<Polyline> _directionLine = {};
+  final Map<String, String> destDisTime= {
+    "distance": "NOT REACHABLE",
+    "duration": "",
+    "url": ""
+  };
 
   Future<void> initLocation() async {
     final hasPermission = await _handleLocationPermission(context);
@@ -108,10 +113,17 @@ class _HomePageState extends State<HomePage> {
     final pos = LatLng(_locationDetails["geometry"]["location"]["lat"], _locationDetails["geometry"]["location"]["lng"]);
     setState(() {
       if(directionResponse.length!=0){
-        _directionLine = PolylinePoints().decodePolyline(directionResponse["overview_polyline"]["points"]);
-      }
-      if(_locationDetails.containsKey("opening_hours")){
-        _navScreenTop = 615.h;
+        List<PointLatLng> polyList = PolylinePoints().decodePolyline(directionResponse["overview_polyline"]["points"]);
+        List<LatLng> latLngList = polyList.map((point) => LatLng(point.latitude, point.longitude)).toList();
+        _directionLine.add(Polyline(
+            polylineId: const PolylineId('directions'),
+            points: latLngList,
+            color: Colors.blue,
+            width: 5
+        ));
+        destDisTime["distance"] = directionResponse["legs"][0]["distance"]["text"];
+        destDisTime["duration"] = directionResponse["legs"][0]["duration"]["text"];
+        destDisTime["url"] = _locationDetails["url"];
       }
       _showSearchScreen = false;
       _navScreen = true;
@@ -120,7 +132,7 @@ class _HomePageState extends State<HomePage> {
         position: pos,
         infoWindow: InfoWindow(title: _locationDetails["name"]),
       );
-      _controller!.animateCamera(
+      _controller.animateCamera(
         CameraUpdate.newLatLng(
           pos,
         ),
@@ -132,13 +144,11 @@ class _HomePageState extends State<HomePage> {
     while (position == null) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    if (_controller != null) {
-      _controller!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-            LatLng(position!.latitude, position!.longitude), 17.0
-        ),
-      );
-    }
+    _controller.animateCamera(
+      CameraUpdate.newLatLngZoom(
+          LatLng(position!.latitude, position!.longitude), 17.0
+      ),
+    );
   }
 
   @override
@@ -153,8 +163,8 @@ class _HomePageState extends State<HomePage> {
         }
         if(placeMark != null){
           setState(() {
-            if(_directionLine!=null){
-              _directionLine = null;
+            if(_directionLine.isNotEmpty){
+              _directionLine.clear();
             }
             placeMark = null;
             _navScreen = false;
@@ -191,6 +201,7 @@ class _HomePageState extends State<HomePage> {
                             zoom: 15.0,
                           ),
                           markers: placeMark == null? {}: {placeMark as Marker},
+                          polylines: _directionLine,
                         ),
                         AnimatedPositioned(
                             top:  _showSearchScreen? 0.h : 70.h,
@@ -316,7 +327,9 @@ class _HomePageState extends State<HomePage> {
                             )
                         ),
                         _navScreen? Positioned(
-                            top: _navScreenTop,
+                            bottom: 0.h,
+                            left: 0.w,
+                            right: 0.w,
                             child: _showSearchScreen? const SizedBox() : locationInfo()
                         ) : Positioned(
                             top: 710.h,
@@ -356,122 +369,125 @@ class _HomePageState extends State<HomePage> {
 
   Widget locationInfo(){
     return Container(
-        padding: EdgeInsets.only(left: 10.w, right: 10.w,top: 5.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
         color: Colors.white,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_locationDetails['name'],
-                style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
-                    fontWeight: FontWeight.w500, color: Colors.black),
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 5.h,),
-              SizedBox(
-                width: 450.w,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text("Distance time",
-                            style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                                fontWeight: FontWeight.w400, color: Colors.black ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 5.h,),
-                        _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
-                        Row(
-                          children: [
-                            Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+          child: SizedBox(
+            width: 430.w,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(_locationDetails['name'],
+                            style: TextStyle(fontSize: 26.sp, fontFamily: "Lexend",
+                                fontWeight: FontWeight.w500, color: Colors.black),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 5.h,),
+                          Text("${destDisTime["distance"]} (${destDisTime["duration"]})",
                               style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w400,
-                                  color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
-                            ),
-                            Text( ": ${getPlaceTiming()}",
-                              style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black),
-                            ),
-                          ],
-                        ) : const SizedBox(),
-                        SizedBox(height: 5.h,),
-                        _locationDetails.containsKey("rating")?
-                        Row(
-                          children: [
-                            Text("RATING: ${_locationDetails["rating"].toString()}",
-                              style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w400, color: Colors.black),                             //total
-                            ),
-                            const Icon(Icons.star, color: Color(0xFFFFD700),),
-                            Text("(${_locationDetails["user_ratings_total"].toString()})",
-                              style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w500, color: Colors.blueGrey),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ) : const SizedBox(),
-                        GestureDetector(
-                            onTap: (){
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) => PlaceInformation(locationDetails: _locationDetails)));
-                            },
-                            child: Text("Show more details",
-                              style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
-                                  fontWeight: FontWeight.w500, color: Colors.blue,
-                                  decoration: TextDecoration.underline),
-                              overflow: TextOverflow.ellipsis,
-                            )
-                        ),
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: ()=>{},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(400.w))
-                                )
+                                  fontWeight: FontWeight.w400, color: Colors.black ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 5.h,),
+                          _locationDetails.containsKey("opening_hours") && _locationDetails["opening_hours"]["open_now"]!=null?
+                          Row(
+                            children: [
+                              Text( _locationDetails["opening_hours"]["open_now"]? "Open": "Close",
+                                style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w400,
+                                    color: _locationDetails["opening_hours"]["open_now"]? const Color(0xFF1FFF12) : Colors.red),
                               ),
-                              child: Text(
-                                  "START",
+                              Text( ": ${getPlaceTiming()}",
+                                style: TextStyle(fontSize: 19.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black),
+                              ),
+                            ],
+                          ) : const SizedBox(),
+                          SizedBox(height: 5.h,),
+                          _locationDetails.containsKey("rating")?
+                          Row(
+                            children: [
+                              Text("RATING: ${_locationDetails["rating"].toString()}",
+                                style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w400, color: Colors.black),                             //total
+                              ),
+                              const Icon(Icons.star, color: Color(0xFFFFD700),),
+                              Text("(${_locationDetails["user_ratings_total"].toString()})",
+                                style: TextStyle(fontSize: 17.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w500, color: Colors.blueGrey),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ) : const SizedBox(),
+                          GestureDetector(
+                              onTap: (){
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) => PlaceInformation(locationDetails: _locationDetails)));
+                              },
+                              child: Text("Show more details",
+                                style: TextStyle(fontSize: 20.sp, fontFamily: "Lexend",
+                                    fontWeight: FontWeight.w500, color: Colors.blue,
+                                    decoration: TextDecoration.underline),
+                                overflow: TextOverflow.ellipsis,
+                              )
+                          ),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: ()=>{},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(400.w))
+                                  )
+                                ),
+                                child: Text(
+                                    "START",
+                                    style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
+                                        fontWeight: FontWeight.w400, color: Colors.white),
+                                  ),
+                              ),
+                              SizedBox(width: 22.w,),
+                              ElevatedButton(
+                                onPressed: (){
+                                  Share.share(destDisTime["url"]!);
+                                  print(destDisTime["url"]);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurpleAccent,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(400.w))
+                                    )
+                                ),
+                                child: Text(
+                                  "SHARE",
                                   style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
                                       fontWeight: FontWeight.w400, color: Colors.white),
                                 ),
-                            ),
-                            SizedBox(width: 22.w,),
-                            ElevatedButton(
-                              onPressed: ()=>{},
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurpleAccent,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(400.w))
-                                  )
                               ),
-                              child: Text(
-                                "SHARE",
-                                style: TextStyle(fontSize: 18.sp, fontFamily: "Lexend",
-                                    fontWeight: FontWeight.w400, color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      width: 180.w,
-                      height: 100.h,
-                      child: Image.memory(Uint8List.fromList(placePic.bodyBytes),
-                          fit: BoxFit.fill,),
-                    )
-                  ],
-                ),
-              ),
-            ],
+                            ],
+                          )
+                        ],
+                      ),
+                      SizedBox(
+                        width: 195.w,
+                        height: 115.h,
+                        child: Image.memory(Uint8List.fromList(placePic.bodyBytes),
+                            fit: BoxFit.fill,),
+                      )
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       );
