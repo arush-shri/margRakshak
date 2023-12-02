@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
@@ -17,6 +18,8 @@ import 'package:share_plus/share_plus.dart';
 import '../presenter/HomePresenter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
+import '../presenter/ServerPresenter.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -29,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   bool _showSearchScreen = false;
   bool _showContributionScreen = false;
   bool _navScreen = false;
+  bool _navigating = false;
   MapType mapStyle = MapType.hybrid;
   double containerHeight = 0.0.h;
   double containerWidth = 0.0.h;
@@ -36,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
-  String dangerAhead = "";
+  List<String> dangerAhead = [];
   double screenWidth = 0.0.w;
   Position? position;
   late Response placePic;
@@ -50,20 +54,12 @@ class _HomePageState extends State<HomePage> {
     "duration": "",
     "url": ""
   };
+  String userSpeed = "";
 
   Future<void> initLocation() async {
     final hasPermission = await _handleLocationPermission(context);
     if(hasPermission){
         position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-        positionStream = Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation,distanceFilter: 1)
-        ).listen((Position newPosition) {
-          setState(() {
-            position = newPosition;
-            _centerCamera();
-          });
-        });
     }
   }
   @override
@@ -98,6 +94,10 @@ class _HomePageState extends State<HomePage> {
   void _onMapCreated(GoogleMapController controller) {
     _controller = controller;
     _centerCamera();
+  }
+
+  Future<void> navigating(double lat, double lng) async {
+    ServerPresenter().navigating(lat, lng);
   }
 
   Future<void> locationSearched(String placeName) async {
@@ -144,11 +144,25 @@ class _HomePageState extends State<HomePage> {
     while (position == null) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    _controller.animateCamera(
-      CameraUpdate.newLatLngZoom(
-          LatLng(position!.latitude, position!.longitude), 17.0
-      ),
-    );
+    if(_navigating){
+      _controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: LatLng(position!.latitude, position!.longitude),
+                  tilt: 55.0,
+                  zoom: 17.9,
+                  bearing: position!.heading
+              )
+          )
+      );
+    }
+    else{
+      _controller.animateCamera(
+          CameraUpdate.newLatLngZoom(
+              LatLng(position!.latitude, position!.longitude), 17.0
+          )
+      );
+    }
   }
 
   @override
@@ -165,6 +179,10 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             if(_directionLine.isNotEmpty){
               _directionLine.clear();
+            }
+            if(_navigating){
+              _navigating = false;
+              positionStream.cancel();
             }
             placeMark = null;
             _navScreen = false;
@@ -195,6 +213,8 @@ class _HomePageState extends State<HomePage> {
                           myLocationEnabled: true,
                           zoomGesturesEnabled: true,
                           zoomControlsEnabled: false,
+                          tiltGesturesEnabled: true,
+                          rotateGesturesEnabled: true,
                           mapType: mapStyle,
                           initialCameraPosition: const CameraPosition(
                             target: LatLng(0,0),
@@ -214,7 +234,7 @@ class _HomePageState extends State<HomePage> {
                                   _showSearchScreen = true;
                                 });
                               },
-                              child: SearchScreen(searchBoxOpen: _showSearchScreen, callback: () {
+                              child: _navigating? const SizedBox() : SearchScreen(searchBoxOpen: _showSearchScreen, callback: () {
                                 setState(() {
                                   _showSearchScreen = false;
                                 });
@@ -229,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                             child: OutdoorAnimation(condition: outdoorCondition),
                           ),
                         ),
-                        dangerAhead == "" ? Container() : Positioned(
+                        dangerAhead.isEmpty ? Container() : Positioned(
                           child: Container(
                             width: 450.w,
                             height: 800.h,
@@ -282,6 +302,19 @@ class _HomePageState extends State<HomePage> {
                             )
                         ),
                         Positioned(
+                            top: 600.h,
+                            left: 10.w,
+                            child: !_navigating? const SizedBox() : CircleAvatar(
+                              radius: 23.h,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                userSpeed,
+                                style: TextStyle(fontSize: 20.sp,
+                                    fontFamily: "Lexend", fontWeight: FontWeight.w400, color: Colors.black ),
+                              ),
+                            )
+                        ),
+                        Positioned(
                           top: 660.h,
                           left: 10.w,
                           child: GestureDetector(
@@ -322,7 +355,7 @@ class _HomePageState extends State<HomePage> {
                                   color: const Color(0xFF44056C).withOpacity(0.9)
                               ),
                               child: SingleChildScrollView(
-                                child: ContributionRow(screenWidth: screenWidth,),
+                                child: ContributionRow(screenWidth: screenWidth, moving: false),
                               )
                             )
                         ),
@@ -330,7 +363,14 @@ class _HomePageState extends State<HomePage> {
                             bottom: 0.h,
                             left: 0.w,
                             right: 0.w,
-                            child: _showSearchScreen? const SizedBox() : locationInfo()
+                            child: _showSearchScreen? const SizedBox() : _navigating? Container(
+                              width: 450.w,
+                              height: 84.h,
+                              color: const Color(0xFF44056C).withOpacity(0.9),
+                              child: SingleChildScrollView(
+                                child: ContributionRow(screenWidth: 46.w, moving: true),
+                              ),
+                            ) : locationInfo()
                         ) : Positioned(
                             top: 710.h,
                             left: 10.w,
@@ -443,7 +483,28 @@ class _HomePageState extends State<HomePage> {
                           Row(
                             children: [
                               ElevatedButton(
-                                onPressed: ()=>{},
+                                onPressed: () {
+                                  setState(() {
+                                    positionStream = Geolocator.getPositionStream(
+                                        locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation,distanceFilter: 1)
+                                    ).listen((Position newPosition) {
+                                      userSpeed = newPosition.speed.toStringAsPrecision(2);
+                                      position = newPosition;
+                                      navigating(position!.latitude, position!.longitude);
+                                      _centerCamera();
+                                    });
+                                    _navigating = true;
+                                  });
+                                  Fluttertoast.showToast(
+                                    msg: "Please provide information through\nbottom bar to help us know about roads",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    timeInSecForIosWeb: 3,
+                                    gravity: ToastGravity.CENTER,
+                                    backgroundColor: const Color(0xFF00A6FF),
+                                    textColor: Colors.black,
+                                    fontSize: 16.0,
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   shape: RoundedRectangleBorder(

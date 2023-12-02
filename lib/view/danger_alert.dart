@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DangerAlert extends StatefulWidget {
-  final String dangerType;
+  final List<String> dangerType;
   const DangerAlert({super.key, required this.dangerType});
 
   @override
