@@ -20,8 +20,10 @@ class ServerPresenter {
   Future<Response> makeContribution(String collectionName) async {
     return await _serverModel.makeContribution(collectionName);
   }
-  Future<void> navigating(double lat, double lng) async {
+  Future<void> navigating(double lat, double lng, double speed) async {
     await _serverModel.navigating(lat, lng);
-    final some = await _serverModel.getDanger();
+    final some = await _serverModel.getDanger(speed);
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    print(some);
   }
 }

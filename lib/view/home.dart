@@ -96,8 +96,8 @@ class _HomePageState extends State<HomePage> {
     _centerCamera();
   }
 
-  Future<void> navigating(double lat, double lng) async {
-    ServerPresenter().navigating(lat, lng);
+  Future<void> navigating(double lat, double lng, double speed) async {
+    ServerPresenter().navigating(lat, lng, speed);
   }
 
   Future<void> locationSearched(String placeName) async {
@@ -488,10 +488,12 @@ class _HomePageState extends State<HomePage> {
                                     positionStream = Geolocator.getPositionStream(
                                         locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation,distanceFilter: 1)
                                     ).listen((Position newPosition) {
-                                      userSpeed = newPosition.speed.toStringAsPrecision(2);
-                                      position = newPosition;
-                                      navigating(position!.latitude, position!.longitude);
-                                      _centerCamera();
+                                      setState(() {
+                                        userSpeed = (newPosition.speed * 3.6).toStringAsPrecision(2);
+                                        position = newPosition;
+                                        navigating(position!.latitude, position!.longitude, newPosition.speed);
+                                        _centerCamera();
+                                      });
                                     });
                                     _navigating = true;
                                   });
@@ -501,7 +503,7 @@ class _HomePageState extends State<HomePage> {
                                     timeInSecForIosWeb: 3,
                                     gravity: ToastGravity.CENTER,
                                     backgroundColor: const Color(0xFF00A6FF),
-                                    textColor: Colors.black,
+                                    textColor: Colors.white,
                                     fontSize: 16.0,
                                   );
                                 },
@@ -521,7 +523,6 @@ class _HomePageState extends State<HomePage> {
                               ElevatedButton(
                                 onPressed: (){
                                   Share.share(destDisTime["url"]!);
-                                  print(destDisTime["url"]);
                                 },
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.deepPurpleAccent,

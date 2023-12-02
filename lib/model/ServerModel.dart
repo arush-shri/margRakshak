@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class ServerModel{
 
   String _userEmail = "";
-  String _objectId = "";
+  dynamic _objectId = "";
   final _serverLink = dotenv.env['SERVERLINK'];
   ServerModel(){
     User? user = FirebaseAuth.instance.currentUser;
@@ -73,13 +73,12 @@ class ServerModel{
           })
         );
     if(setResponse.body.isNotEmpty){
-      _objectId = json.decode(setResponse.body);
+      _objectId = setResponse.body;
     }
   }
 
-  Future<void> getDanger() async {
-    final getDangerRes = await http.get(Uri.parse("${_serverLink}navigation/getDangers"));
-    print(json.decode(getDangerRes.body));
-
+  Future<dynamic> getDanger(double speed) async {
+    final getDangerRes = await http.get(Uri.parse("${_serverLink}navigation/getDangers/${speed * 35}"));
+    return json.decode(getDangerRes.body);
   }
 }
