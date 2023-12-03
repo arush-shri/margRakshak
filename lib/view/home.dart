@@ -107,7 +107,6 @@ class _HomePageState extends State<HomePage> {
           markersList.add(
               Marker(
                 markerId: MarkerId(item["_id"].toString()),
-                flat: true,
                 position: pos,
                 infoWindow: InfoWindow(title: key),
               )
@@ -118,7 +117,6 @@ class _HomePageState extends State<HomePage> {
     await Future.delayed(const Duration(milliseconds: 2300));
     setState(() {
       dangerAhead.clear();
-      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     });
   }
 
