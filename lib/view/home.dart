@@ -40,13 +40,12 @@ class _HomePageState extends State<HomePage> {
   double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
-  List<String> dangerAhead = [];
+  Map<String, dynamic> dangerAhead = {};
   double screenWidth = 0.0.w;
   Position? position;
   late Response placePic;
   late Map<String, dynamic> _locationDetails;
   final homePresenter = HomePresenter();
-  Marker? placeMark;
   late StreamSubscription<Position> positionStream;
   final Set<Polyline> _directionLine = {};
   final Map<String, String> destDisTime= {
@@ -54,6 +53,7 @@ class _HomePageState extends State<HomePage> {
     "duration": "",
     "url": ""
   };
+  List<Marker> markersList = [];
   String userSpeed = "";
 
   Future<void> initLocation() async {
@@ -97,7 +97,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> navigating(double lat, double lng, double speed) async {
-    ServerPresenter().navigating(lat, lng, speed);
+    dangerAhead = await ServerPresenter().navigating(lat, lng, speed);
+    print(dangerAhead);
+    setState(() {
+      dangerAhead.forEach((key, value) async {
+        await Future.forEach(value, (item) async {
+          item = item as Map<String, dynamic>;
+          final pos = LatLng(item["location"]["coordinates"][1], item["location"]["coordinates"][0]);
+          markersList.add(
+              Marker(
+                markerId: MarkerId(item["_id"].toString()),
+                flat: true,
+                position: pos,
+                infoWindow: InfoWindow(title: key),
+              )
+          );
+        });
+      });
+    });
+    await Future.delayed(const Duration(milliseconds: 2300));
+    setState(() {
+      dangerAhead.clear();
+      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    });
   }
 
   Future<void> locationSearched(String placeName) async {
@@ -127,11 +149,12 @@ class _HomePageState extends State<HomePage> {
       }
       _showSearchScreen = false;
       _navScreen = true;
-      placeMark = Marker(
+      final placeMark = Marker(
         markerId: const MarkerId('place marker'),
         position: pos,
         infoWindow: InfoWindow(title: _locationDetails["name"]),
       );
+      markersList.add(placeMark);
       _controller.animateCamera(
         CameraUpdate.newLatLng(
           pos,
@@ -175,7 +198,7 @@ class _HomePageState extends State<HomePage> {
           });
           return false;
         }
-        if(placeMark != null){
+        if(markersList.isNotEmpty){
           setState(() {
             if(_directionLine.isNotEmpty){
               _directionLine.clear();
@@ -184,7 +207,7 @@ class _HomePageState extends State<HomePage> {
               _navigating = false;
               positionStream.cancel();
             }
-            placeMark = null;
+            markersList.clear();
             _navScreen = false;
           });
           _centerCamera();
@@ -220,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                             target: LatLng(0,0),
                             zoom: 15.0,
                           ),
-                          markers: placeMark == null? {}: {placeMark as Marker},
+                          markers: Set<Marker>.from(markersList),
                           polylines: _directionLine,
                         ),
                         AnimatedPositioned(
@@ -254,7 +277,7 @@ class _HomePageState extends State<HomePage> {
                             width: 450.w,
                             height: 800.h,
                             color: const Color(0xFF2C2C2C).withOpacity(0.7),
-                            child: DangerAlert(dangerType: dangerAhead),
+                            child: DangerAlert(dangerList: dangerAhead),
                           ),
                         ),
                         Positioned(
