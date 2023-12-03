@@ -23,7 +23,5 @@ class ServerPresenter {
   Future<void> navigating(double lat, double lng, double speed) async {
     await _serverModel.navigating(lat, lng);
     final some = await _serverModel.getDanger(speed);
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    print(some);
   }
 }

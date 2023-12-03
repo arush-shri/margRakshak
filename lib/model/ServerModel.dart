@@ -79,6 +79,24 @@ class ServerModel{
 
   Future<dynamic> getDanger(double speed) async {
     final getDangerRes = await http.get(Uri.parse("${_serverLink}navigation/getDangers/${speed * 35}"));
-    return json.decode(getDangerRes.body);
+    var decodedRes = json.decode(getDangerRes.body);
+    if(decodedRes["OtherRegion"].isNotEmpty){
+      await Future.forEach(decodedRes["OtherRegion"], (item) async {
+        item = item as Map<String, dynamic>;
+        final result = json.decode((await http.post(Uri.parse("${_serverLink}contribute/getOtherName"),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(<String, String>{
+              "latitude": "${item["location"]["coordinates"][1]}",
+              "longitude": "${item["location"]["coordinates"][0]}"
+            })
+        )).body);
+        decodedRes["${result["areaName"]}"] = [];
+        decodedRes["${result["areaName"]}"].add(item);
+      });
+      decodedRes.remove("OtherRegion");
+    }
+    return decodedRes;
   }
 }
