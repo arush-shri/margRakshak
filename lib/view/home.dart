@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   double contributionWidth = 0.0.h;
   double terrainRadius = 0.0.h;
   String outdoorCondition = "";
-  Map<String, dynamic> dangerAhead = {};
+  String dangerType = "";
   double screenWidth = 0.0.w;
   Position? position;
   late Response placePic;
@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
     "duration": "",
     "url": ""
   };
-  List<Marker> markersList = [];
+  Set<Marker> markersList = {};
   String userSpeed = "";
 
   Future<void> initLocation() async {
@@ -96,11 +96,26 @@ class _HomePageState extends State<HomePage> {
     _centerCamera();
   }
 
+  Future<void> showDan() async {
+    await Future.delayed(const Duration(seconds: 30));
+    _showSearchScreen = false;
+  }
+
   Future<void> navigating(double lat, double lng, double speed) async {
-    dangerAhead = await ServerPresenter().navigating(lat, lng, speed);
-    print(dangerAhead);
+    Map<String, dynamic> dangerAhead = await ServerPresenter().navigating(lat, lng, speed);
     setState(() {
       dangerAhead.forEach((key, value) async {
+        if(value.isNotEmpty && !_showSearchScreen){
+          setState(() {
+            dangerType = key;
+            _showSearchScreen = true;
+          });
+          await Future.delayed(const Duration(milliseconds: 1300));
+          setState(() {
+            dangerType = "";
+            showDan();
+          });
+        }
         await Future.forEach(value, (item) async {
           item = item as Map<String, dynamic>;
           final pos = LatLng(item["location"]["coordinates"][1], item["location"]["coordinates"][0]);
@@ -113,11 +128,9 @@ class _HomePageState extends State<HomePage> {
           );
         });
       });
+      markersList.clear();
     });
-    await Future.delayed(const Duration(milliseconds: 2300));
-    setState(() {
-      dangerAhead.clear();
-    });
+
   }
 
   Future<void> locationSearched(String placeName) async {
@@ -198,6 +211,7 @@ class _HomePageState extends State<HomePage> {
         }
         if(markersList.isNotEmpty){
           setState(() {
+            _showSearchScreen = false;
             if(_directionLine.isNotEmpty){
               _directionLine.clear();
             }
@@ -241,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                             target: LatLng(0,0),
                             zoom: 15.0,
                           ),
-                          markers: Set<Marker>.from(markersList),
+                          markers: markersList,
                           polylines: _directionLine,
                         ),
                         AnimatedPositioned(
@@ -270,12 +284,12 @@ class _HomePageState extends State<HomePage> {
                             child: OutdoorAnimation(condition: outdoorCondition),
                           ),
                         ),
-                        dangerAhead.isEmpty ? Container() : Positioned(
+                        dangerType == ""? const SizedBox() : Positioned(
                           child: Container(
                             width: 450.w,
                             height: 800.h,
                             color: const Color(0xFF2C2C2C).withOpacity(0.7),
-                            child: DangerAlert(dangerList: dangerAhead),
+                            child: DangerAlert(dangerType: dangerType,),
                           ),
                         ),
                         Positioned(
