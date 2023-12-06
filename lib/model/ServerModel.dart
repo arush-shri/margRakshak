@@ -10,6 +10,7 @@ class ServerModel{
   String _userEmail = "";
   dynamic _objectId = "";
   final _serverLink = dotenv.env['SERVERLINK'];
+  final _weatherKey = dotenv.env['WEATHERAPI'];
   ServerModel(){
     User? user = FirebaseAuth.instance.currentUser;
     if(user != null){
@@ -98,5 +99,11 @@ class ServerModel{
       decodedRes.remove("OtherRegion");
     }
     return decodedRes;
+  }
+
+  Future<String> getWeather(double lat, double lng) async {
+    final baseURL = "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lng&appid=$_weatherKey";
+    final response = json.decode((await http.get(Uri.parse(baseURL))).body);
+    return response["weather"]["main"];
   }
 }

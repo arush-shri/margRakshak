@@ -16,7 +16,7 @@ class ContributionRow extends StatefulWidget {
 
 class _ContributionRowState extends State<ContributionRow> {
 
-  final serverPresenter = ServerPresenter();
+  final _serverPresenter = ServerPresenter();
 
   @override
   Widget build(BuildContext context) {
@@ -30,19 +30,19 @@ class _ContributionRowState extends State<ContributionRow> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             rowItem("assets/images/accident_icon.png", "Accident\nProne", widget.screenWidth, () {
-              serverPresenter.makeContribution("AccidentArea");
+              _serverPresenter.makeContribution("AccidentArea");
             }),
             rowItem("assets/images/rail_icon.png", "Railway\nCrossing", widget.screenWidth, () {
-              serverPresenter.makeContribution("RailwayCross");
+              _serverPresenter.makeContribution("RailwayCross");
             }),
             rowItem("assets/images/forest_icon.png", "Forest\nArea", widget.screenWidth, () {
-              serverPresenter.makeContribution("ForestArea");
+              _serverPresenter.makeContribution("ForestArea");
             }),
             rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", widget.screenWidth, () {
-              serverPresenter.makeContribution("GhatRegion");
+              _serverPresenter.makeContribution("GhatRegion");
             }),
             rowItem("assets/images/other_icon.png", "Other\nRegion", widget.screenWidth, () {
-              serverPresenter.makeContribution("OtherRegion");
+              _serverPresenter.makeContribution("OtherRegion");
             }),
           ],
         ),

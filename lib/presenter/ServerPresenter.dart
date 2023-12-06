@@ -25,4 +25,9 @@ class ServerPresenter {
     final dangerList = await _serverModel.getDanger(speed);
     return dangerList;
   }
+
+  Future<String> getWeather(double lat, double lng) async{
+    return await _serverModel.getWeather(lat, lng);
+  }
+
 }

@@ -18,7 +18,7 @@ class _OutdoorAnimationState extends State<OutdoorAnimation> {
 
   @override
   Widget build(BuildContext context) {
-    if(widget.condition == "rain") {
+    if(widget.condition == "Rain" || widget.condition == "Drizzle") {
       imageAsset = "assets/gifs/rain_anim.gif";
       displayText = "It's probably raining outside\nPlease drive with caution";
       boxFitType = BoxFit.fill;
@@ -33,12 +33,12 @@ class _OutdoorAnimationState extends State<OutdoorAnimation> {
       displayText = "Good Morning Rider";
       boxFitType = BoxFit.contain;
     }
-    else if(widget.condition == "snow"){
+    else if(widget.condition == "Snow"){
       imageAsset = "assets/gifs/snow_anim.gif";
       displayText = "It's probably snowing outside\nPlease drive with caution";
       boxFitType = BoxFit.fill;
     }
-    else if(widget.condition == "thunderstorm"){
+    else if(widget.condition == "Thunderstorm"){
       imageAsset = "assets/gifs/thunder_anim.gif";
       displayText = "Thunderstorms alert\nPlease stay in house or car";
       boxFitType = BoxFit.fill;

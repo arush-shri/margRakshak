@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart';
+import 'package:marg_rakshak/components/custom_widgets/RouteAnimator.dart';
 import 'package:marg_rakshak/presenter/HomePresenter.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -19,8 +20,10 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<SearchScreen> with TickerProviderStateMixin {
   final TextEditingController _searchText = TextEditingController();
+  late AnimationController _controller;
+  late Animation<double> _animation;
   bool toastShown = false;
   bool showProgress = false;
   String transportMedium = "";
@@ -35,6 +38,23 @@ class _SearchScreenState extends State<SearchScreen> {
     _searchText.addListener(() {
       onChange();
     });
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+
+    _animation = Tween<double>(begin: 0, end: 1.2).animate(_controller)
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if(status == AnimationStatus.completed){
+          _controller.reset();
+          _controller.forward();
+        }
+      });
+
+    _controller.forward();
     super.initState();
   }
 
@@ -74,6 +94,9 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget searchClosed(){
+    _controller.reset();
+    toastShown = false;
+    _searchText.text = "";
     setState(() {
       showProgress = false;
     });
@@ -101,6 +124,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget searchOpened(BuildContext context){
     if (!toastShown){
+      _controller.forward();
       toastShown = true;
       Fluttertoast.showToast(
           msg: "Please select your transportation medium",
@@ -112,13 +136,7 @@ class _SearchScreenState extends State<SearchScreen> {
           fontSize: 16.0
       );
     }
-    return WillPopScope(onWillPop: () async {
-      widget.callback();
-      toastShown = false;
-      _searchText.text = "";
-      return false;
-    },
-      child: Container(
+    return Container(
         width: 450.w,
         height: 800.h,
         decoration: const BoxDecoration(color: Color(0xFF031434)),
@@ -165,8 +183,8 @@ class _SearchScreenState extends State<SearchScreen> {
               thickness: 1.5.h,
               color: const Color(0xFFABABAB),
             ),
-            Expanded(
-                child: showProgress? ShowProgress() : ListView.builder(
+            showProgress? progressShow() : ListView.builder(
+                  padding: EdgeInsets.only(top: 20.h),
                   shrinkWrap: true,
                   itemCount: _placesList.length,
                   itemBuilder: (context, index){
@@ -218,20 +236,32 @@ class _SearchScreenState extends State<SearchScreen> {
                     );
                   },
                 )
-            )
           ],
         ),
-      ),
-    );
+      );
   }
 
-  Widget ShowProgress(){
-    return const Column(
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  Widget progressShow(){
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CircularProgressIndicator(
-          color: Color(0xFF3479E1),
+        SizedBox(
+          width: 450.w,
+          height: 550.h,
+          child: CustomPaint(
+            painter: RouteAnimator(progress: _animation.value),
+          ),
+        ),
+        Text(
+          "Finding best route for you",
+          style: TextStyle(fontSize: 28.sp, fontFamily: "Lexend",
+              fontWeight: FontWeight.w400 , color: Colors.white),
         ),
       ],
     );

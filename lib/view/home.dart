@@ -48,6 +48,7 @@ class _HomePageState extends State<HomePage> {
   final homePresenter = HomePresenter();
   late StreamSubscription<Position> positionStream;
   final Set<Polyline> _directionLine = {};
+  final _serverPresenter = ServerPresenter();
   final Map<String, String> destDisTime= {
     "distance": "NOT REACHABLE",
     "duration": "",
@@ -97,18 +98,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> showDan() async {
-    await Future.delayed(const Duration(seconds: 30));
-    _showSearchScreen = false;
+    await Future.delayed(const Duration(seconds: 40));
+    _navScreen = false;
+  }
+
+  Future<void> getWeather() async{
+    Timer.periodic(const Duration(minutes: 30), (Timer timer) async {
+      String condition = await _serverPresenter.getWeather(position!.latitude, position!.longitude);
+      setState(() {
+        outdoorCondition = condition;
+      });
+      await Future.delayed(const Duration(milliseconds: 1300));
+      setState(() {
+        outdoorCondition = "";
+      });
+    });
   }
 
   Future<void> navigating(double lat, double lng, double speed) async {
-    Map<String, dynamic> dangerAhead = await ServerPresenter().navigating(lat, lng, speed);
+    Map<String, dynamic> dangerAhead = await _serverPresenter.navigating(lat, lng, speed);
     setState(() {
+      markersList.clear();
       dangerAhead.forEach((key, value) async {
-        if(value.isNotEmpty && !_showSearchScreen){
+        if(value.isNotEmpty && !_navScreen){
           setState(() {
             dangerType = key;
-            _showSearchScreen = true;
+            _navScreen = true;
           });
           await Future.delayed(const Duration(milliseconds: 1300));
           setState(() {
@@ -116,6 +131,24 @@ class _HomePageState extends State<HomePage> {
             showDan();
           });
         }
+
+        String imageAsset = "assets/images/sat_pic.png";
+        if(key == "AccidentArea"){
+          imageAsset = "assets/images/accident_icon.png";
+        }
+        else if(key == "RailwayCross"){
+          imageAsset = "assets/images/rail_icon.png";
+        }
+        else if(key == "ForestArea"){
+          imageAsset = "assets/images/forest_icon.png";
+        }
+        else if(key == "GhatRegion"){
+          imageAsset = "assets/images/ghat_icon.png";
+        }
+        else if(key == "UserPosition"){
+          imageAsset = "assets/images/user_icon.png";
+        }
+
         await Future.forEach(value, (item) async {
           item = item as Map<String, dynamic>;
           final pos = LatLng(item["location"]["coordinates"][1], item["location"]["coordinates"][0]);
@@ -123,12 +156,13 @@ class _HomePageState extends State<HomePage> {
               Marker(
                 markerId: MarkerId(item["_id"].toString()),
                 position: pos,
+                icon: await BitmapDescriptor.fromAssetImage(ImageConfiguration(size: Size(12.h, 12.h)),
+                    imageAsset),
                 infoWindow: InfoWindow(title: key),
               )
           );
         });
       });
-      markersList.clear();
     });
 
   }
@@ -211,7 +245,6 @@ class _HomePageState extends State<HomePage> {
         }
         if(markersList.isNotEmpty){
           setState(() {
-            _showSearchScreen = false;
             if(_directionLine.isNotEmpty){
               _directionLine.clear();
             }
@@ -394,7 +427,7 @@ class _HomePageState extends State<HomePage> {
                               )
                             )
                         ),
-                        _navScreen? Positioned(
+                        _navScreen && _navigating? Positioned(
                             bottom: 0.h,
                             left: 0.w,
                             right: 0.w,
@@ -519,6 +552,7 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               ElevatedButton(
                                 onPressed: () {
+                                  getWeather();
                                   setState(() {
                                     positionStream = Geolocator.getPositionStream(
                                         locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation,distanceFilter: 1)
