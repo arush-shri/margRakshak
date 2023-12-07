@@ -455,7 +455,40 @@ class _HomePageState extends State<HomePage> {
                                   color: Colors.white.withOpacity(0.75),
                                   borderRadius: BorderRadius.all(Radius.circular(20.w))
                               ),
-                              child: BottomHomeRow(toggleContribute: _toggleContribute,),
+                              child: BottomHomeRow(
+                                toggleContribute: _toggleContribute,
+                                navHome: (lat, lng ) async {
+                                  final directionResponse = await homePresenter.getDirection(
+                                      lat, lng,
+                                      position!.latitude,
+                                      position!.longitude
+                                    );
+                                  setState(() {
+                                    if(directionResponse.length!=0){
+                                      List<PointLatLng> polyList = PolylinePoints().decodePolyline(directionResponse["overview_polyline"]["points"]);
+                                      List<LatLng> latLngList = polyList.map((point) => LatLng(point.latitude, point.longitude)).toList();
+                                      _directionLine.add(Polyline(
+                                          polylineId: const PolylineId('directions'),
+                                          points: latLngList,
+                                          color: Colors.blue,
+                                          width: 5
+                                        ));
+                                    }
+                                    _showSearchScreen = false;
+                                    _navScreen = true;
+                                    final placeMark = Marker(
+                                      markerId: const MarkerId('place marker'),
+                                      position: LatLng(lat, lng),
+                                      infoWindow: InfoWindow(title: _locationDetails["name"]),
+                                    );
+                                    markersList.add(placeMark);
+                                    _controller.animateCamera(
+                                      CameraUpdate.newLatLng(
+                                        LatLng(lat, lng),
+                                      ),
+                                    );
+                                  });
+                            },),
                             )
                         )
                       ],
@@ -488,7 +521,7 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
-            width: 430.w,
+            width: 450.w,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

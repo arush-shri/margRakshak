@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:marg_rakshak/presenter/ServerPresenter.dart';
-import 'package:marg_rakshak/view/danger_alert.dart';
 import 'package:marg_rakshak/view/road_side_help.dart';
 
 class BottomHomeRow extends StatefulWidget {
   final VoidCallback toggleContribute;
-  const BottomHomeRow({super.key, required this.toggleContribute});
+  final Function(double, double) navHome;
+  const BottomHomeRow({super.key, required this.toggleContribute, required this.navHome});
 
   @override
   State<BottomHomeRow> createState() => _BottomHomeRowState();
@@ -63,7 +63,7 @@ class _BottomHomeRowState extends State<BottomHomeRow> with SingleTickerProvider
           });
         }
         ) : rowItem(Icons.home, "Nav Home", const Color(0xFF58B71C), () {
-          /*TODO*/
+            widget.navHome(double.parse(homeLocation?['homeLocation']["latitude"]), double.parse(homeLocation?['homeLocation']["longitude"]));
         }),
       ],
     );

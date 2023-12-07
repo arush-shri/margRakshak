@@ -34,6 +34,7 @@ class ServerModel{
   }
 
   Future<http.Response> setHomeLocation() async {
+
     final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     return await http.post(Uri.parse("${_serverLink}user/updateHomeLocation/$_userEmail"),
         headers: <String, String>{
@@ -99,6 +100,7 @@ class ServerModel{
       });
       decodedRes.remove("OtherRegion");
     }
+    print(decodedRes);
     return decodedRes;
   }
 
