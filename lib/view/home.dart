@@ -14,6 +14,7 @@ import 'package:marg_rakshak/view/outdoor_animator.dart';
 import 'package:marg_rakshak/components/custom_widgets/custom_bottom_row.dart';
 import 'package:marg_rakshak/view/placeInfo.dart';
 import 'package:marg_rakshak/view/search_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import '../presenter/HomePresenter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -66,6 +67,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     initLocation();
+    listenForPermissions();
     super.initState();
   }
 
@@ -132,7 +134,7 @@ class _HomePageState extends State<HomePage> {
           });
         }
 
-        String imageAsset = "assets/images/sat_pic.png";
+        String imageAsset = "assets/images/danger_icon.png";
         if(key == "AccidentArea"){
           imageAsset = "assets/images/accident_icon.png";
         }
@@ -156,7 +158,7 @@ class _HomePageState extends State<HomePage> {
               Marker(
                 markerId: MarkerId(item["_id"].toString()),
                 position: pos,
-                icon: await BitmapDescriptor.fromAssetImage(ImageConfiguration(size: Size(12.h, 12.h)),
+                icon: await BitmapDescriptor.fromAssetImage(ImageConfiguration(size: Size(9.h, 9.h)),
                     imageAsset),
                 infoWindow: InfoWindow(title: key),
               )
@@ -687,4 +689,25 @@ Future<bool> _handleLocationPermission(BuildContext context) async {
     return false;
   }
   return true;
+}
+void listenForPermissions() async {
+  final status = await Permission.microphone.status;
+  switch (status) {
+    case PermissionStatus.denied:
+      requestForPermission();
+      break;
+    case PermissionStatus.granted:
+      break;
+    case PermissionStatus.limited:
+      break;
+    case PermissionStatus.permanentlyDenied:
+      break;
+    case PermissionStatus.restricted:
+      break;
+    case PermissionStatus.provisional:
+      break;
+  }
+}
+Future<void> requestForPermission() async {
+  await Permission.microphone.request();
 }

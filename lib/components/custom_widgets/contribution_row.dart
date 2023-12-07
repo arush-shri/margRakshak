@@ -1,7 +1,7 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../presenter/ServerPresenter.dart';
 
@@ -17,7 +17,7 @@ class ContributionRow extends StatefulWidget {
 class _ContributionRowState extends State<ContributionRow> {
 
   final _serverPresenter = ServerPresenter();
-
+  String? otherName;
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -30,19 +30,45 @@ class _ContributionRowState extends State<ContributionRow> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             rowItem("assets/images/accident_icon.png", "Accident\nProne", widget.screenWidth, () {
-              _serverPresenter.makeContribution("AccidentArea");
+              _serverPresenter.makeContribution("AccidentArea", otherName);
             }),
             rowItem("assets/images/rail_icon.png", "Railway\nCrossing", widget.screenWidth, () {
-              _serverPresenter.makeContribution("RailwayCross");
+              _serverPresenter.makeContribution("RailwayCross", otherName);
             }),
             rowItem("assets/images/forest_icon.png", "Forest\nArea", widget.screenWidth, () {
-              _serverPresenter.makeContribution("ForestArea");
+              _serverPresenter.makeContribution("ForestArea", otherName);
             }),
             rowItem("assets/images/ghat_icon.png", "Ghat\nRoad", widget.screenWidth, () {
-              _serverPresenter.makeContribution("GhatRegion");
+              _serverPresenter.makeContribution("GhatRegion", otherName);
             }),
-            rowItem("assets/images/other_icon.png", "Other\nRegion", widget.screenWidth, () {
-              _serverPresenter.makeContribution("OtherRegion");
+            rowItem("assets/images/other_icon.png", "Other\nRegion", widget.screenWidth, () async {
+              Fluttertoast.showToast(
+                  msg: "Please speak name of the area",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 2,
+                  backgroundColor: const Color(0xFF46009A),
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              stt.SpeechToText speech = stt.SpeechToText();
+              bool available = await speech.initialize();
+              if ( available ) {
+                speech.listen(
+                    listenFor: const Duration(seconds: 5),
+                    partialResults: false,
+                    listenMode: stt.ListenMode.confirmation,
+                    onResult:  (result){
+                      setState(() {
+                        otherName = result.recognizedWords;
+                      });
+                      _serverPresenter.makeContribution("OtherRegion", otherName);
+                    });
+              }
+              else {
+                print("The user has denied the use of speech recognition.");
+              }
+              speech.stop();
             }),
           ],
         ),
