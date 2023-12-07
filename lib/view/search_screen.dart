@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart';
 import 'package:marg_rakshak/components/custom_widgets/RouteAnimator.dart';
 import 'package:marg_rakshak/presenter/HomePresenter.dart';
 import 'package:provider/provider.dart';
@@ -27,10 +26,9 @@ class _SearchScreenState extends State<SearchScreen> with TickerProviderStateMix
   bool toastShown = false;
   bool showProgress = false;
   String transportMedium = "";
-  List<dynamic> _placesList = [];
+  final List<dynamic> _placesList = [];
   var uuid = const Uuid();
   String sessionToken = '124578';
-  late Response response;
   final homePresenter = HomePresenter();
 
   @override
@@ -69,22 +67,28 @@ class _SearchScreenState extends State<SearchScreen> with TickerProviderStateMix
   }
 
   void getPlaces(String inputText) async{
-    response = await homePresenter.getPlaces(inputText, sessionToken);
-    if(response.statusCode==200){
-      setState(() {
-        _placesList = jsonDecode(response.body.toString()) ["predictions"];
-      });
-    }
-    else{
-      Fluttertoast.showToast(
-          msg: "Please restart app or check you internet connection",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 2,
-          backgroundColor: const Color(0xFF46009A),
-          textColor: Colors.white,
-          fontSize: 16.0
-      );
+    if(inputText.isNotEmpty){
+      final response = await homePresenter.getPlaces(inputText, sessionToken);
+      _placesList.clear();
+      if(response.isNotEmpty){
+        setState(() {
+          for (var element in response) {
+            _placesList.add(element);
+          }
+        });
+        response.clear();
+      }
+      else{
+        Fluttertoast.showToast(
+            msg: "Please restart app or check you internet connection",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 2,
+            backgroundColor: const Color(0xFF46009A),
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+      }
     }
   }
 
@@ -183,59 +187,62 @@ class _SearchScreenState extends State<SearchScreen> with TickerProviderStateMix
               thickness: 1.5.h,
               color: const Color(0xFFABABAB),
             ),
-            showProgress? progressShow() : ListView.builder(
-                  padding: EdgeInsets.only(top: 20.h),
-                  shrinkWrap: true,
-                  itemCount: _placesList.length,
-                  itemBuilder: (context, index){
-                    return GestureDetector(
-                      onTap: () async {
-                        widget.locationSearched(_placesList[index]['description']);
-                        _searchText.text = "";
-                        setState(() {
-                          showProgress = true;
-                        });
-                      },
-                      child: Container(
-                        height: 56.h,
-                        width: 450.w,
-                        padding: EdgeInsets.symmetric(horizontal: 10.w),
-                        child: Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.location_on_outlined,
-                                  size: 30.w,
-                                  color: Colors.indigoAccent,
+            showProgress? progressShow() : Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.only(top: 20.h),
+                shrinkWrap: true,
+                itemCount: _placesList.length,
+                itemBuilder: (context, index){
+                  return GestureDetector(
+                    onTap: () async {
+                      widget.locationSearched(_placesList[index]['description']);
+                      _searchText.text = "";
+                      setState(() {
+                        _placesList.clear();
+                        showProgress = true;
+                      });
+                    },
+                    child: Container(
+                      height: 56.h,
+                      width: 450.w,
+                      padding: EdgeInsets.symmetric(horizontal: 10.w),
+                      child: Column(
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 30.w,
+                                color: Colors.indigoAccent,
+                              ),
+                              SizedBox(width: 10.w,),
+                              SizedBox(
+                                width: 390.w,
+                                height: 45.w,
+                                child: Text(
+                                  _placesList[index]['description'],
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
+                                      fontWeight: FontWeight.w400 , color: Colors.white),
                                 ),
-                                SizedBox(width: 10.w,),
-                                SizedBox(
-                                  width: 390.w,
-                                  height: 45.w,
-                                  child: Text(
-                                    _placesList[index]['description'],
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 22.sp, fontFamily: "Lexend",
-                                        fontWeight: FontWeight.w400 , color: Colors.white),
-                                  ),
-                                )
-                              ],
-                            ),
-                            Divider(
-                              height: 1.h,
-                              thickness: 1.5.h,
-                              indent: 10.w,
-                              endIndent: 10.w,
-                              color: const Color(0xFFD3CCCC),
-                            )
-                          ],
-                        ),
+                              )
+                            ],
+                          ),
+                          Divider(
+                            height: 1.h,
+                            thickness: 1.5.h,
+                            indent: 10.w,
+                            endIndent: 10.w,
+                            color: const Color(0xFFD3CCCC),
+                          )
+                        ],
                       ),
-                    );
-                  },
-                )
+                    ),
+                  );
+                },
+              ),
+            )
           ],
         ),
       );

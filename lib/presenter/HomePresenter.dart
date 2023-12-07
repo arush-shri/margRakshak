@@ -6,7 +6,7 @@ class HomePresenter {
 
   final googleMapQuery = GoogleMapsQuery();
 
-  Future<Response> getPlaces(String inputText, String sessionToken) async {
+  Future<List<dynamic>> getPlaces(String inputText, String sessionToken) async {
     return await googleMapQuery.getPlaces(inputText, sessionToken);
   }
 

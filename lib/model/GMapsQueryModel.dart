@@ -7,10 +7,21 @@ class GoogleMapsQuery{
 
   final String? _apiKey = dotenv.env['GMAPSAPI'];
 
-  Future<http.Response> getPlaces(String inputText, String sessionToken) async {
-    String baseURL = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
-    String request = "$baseURL?input=$inputText&key=$_apiKey&sessiontoken=$sessionToken";
-    return await http.get(Uri.parse(request));
+  Future<List<dynamic>> getPlaces(String inputText, String sessionToken) async {
+    List<dynamic> responseList = [];
+    String baseURL1 = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$inputText&key=$_apiKey&sessiontoken=$sessionToken";
+    final response1=  await http.get(Uri.parse(baseURL1));
+    for (var element in (jsonDecode(response1.body)["predictions"])) {
+      responseList.add(element);
+    }
+    if(inputText.length>=2){
+      String baseURL2 = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${inputText.substring(0, inputText.length-1)}&key=$_apiKey&sessiontoken=$sessionToken";
+      final response2 =  await http.get(Uri.parse(baseURL2));
+      for (var element in (jsonDecode(response2.body) ["predictions"])) {
+        responseList.add(element);
+      }
+    }
+    return responseList;
   }
 
   Future<http.Response> getLocationDetail(String placeName) async {

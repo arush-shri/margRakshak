@@ -226,8 +226,12 @@ class _HomePageState extends State<HomePage> {
     }
     else{
       _controller.animateCamera(
-          CameraUpdate.newLatLngZoom(
-              LatLng(position!.latitude, position!.longitude), 17.0
+          CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: LatLng(position!.latitude, position!.longitude),
+                  tilt: 0,
+                  zoom: 17,
+              )
           )
       );
     }
@@ -427,7 +431,7 @@ class _HomePageState extends State<HomePage> {
                               )
                             )
                         ),
-                        _navScreen && _navigating? Positioned(
+                        _navScreen? Positioned(
                             bottom: 0.h,
                             left: 0.w,
                             right: 0.w,
